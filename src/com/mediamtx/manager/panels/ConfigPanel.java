@@ -18,6 +18,19 @@ public class ConfigPanel extends JPanel {
         setBackground(Theme.BG);
         setBorder(new EmptyBorder(12, 12, 12, 12));
 
+        // ── Editor inicializado PRIMEIRO para poder ser capturado pelas lambdas ──
+        editor = new JTextArea(service.loadConfigContent());
+        editor.setFont(Theme.FONT_MONO);
+        editor.setBackground(new Color(20, 20, 32));
+        editor.setForeground(new Color(180, 220, 180));
+        editor.setCaretColor(Theme.ACCENT);
+        editor.setTabSize(2);
+        editor.setBorder(new EmptyBorder(8, 8, 8, 8));
+
+        JScrollPane scroll = new JScrollPane(editor);
+        scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
+
+        // ── Toolbar (botões podem referenciar editor normalmente agora) ──
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         toolbar.setOpaque(false);
 
@@ -38,21 +51,14 @@ public class ConfigPanel extends JPanel {
         });
         btnDefault.addActionListener(e -> editor.setText(service.defaultYaml()));
 
-        toolbar.add(btnLoad); toolbar.add(btnSave); toolbar.add(btnDefault);
+        toolbar.add(btnLoad);
+        toolbar.add(btnSave);
+        toolbar.add(btnDefault);
+
         JLabel hint = new JLabel("  Edite o YAML e salve antes de iniciar o servidor");
-        hint.setFont(Theme.FONT_SMALL); hint.setForeground(Theme.TEXT_MUTED);
+        hint.setFont(Theme.FONT_SMALL);
+        hint.setForeground(Theme.TEXT_MUTED);
         toolbar.add(hint);
-
-        editor = new JTextArea(service.loadConfigContent());
-        editor.setFont(Theme.FONT_MONO);
-        editor.setBackground(new Color(20, 20, 32));
-        editor.setForeground(new Color(180, 220, 180));
-        editor.setCaretColor(Theme.ACCENT);
-        editor.setTabSize(2);
-        editor.setBorder(new EmptyBorder(8, 8, 8, 8));
-
-        JScrollPane scroll = new JScrollPane(editor);
-        scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
 
         add(toolbar, BorderLayout.NORTH);
         add(scroll,  BorderLayout.CENTER);
