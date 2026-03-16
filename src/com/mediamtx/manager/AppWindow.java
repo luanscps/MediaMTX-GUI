@@ -11,11 +11,11 @@ import java.awt.event.*;
 
 public class AppWindow extends JFrame {
 
-    public static final String VERSION    = "1.0.0";
-    public static final String REPO_URL   = "https://github.com/luanscps/MediaMTX-GUI";
+    public static final String VERSION      = "1.0.0";
+    public static final String REPO_URL     = "https://github.com/luanscps/MediaMTX-GUI";
     public static final String MEDIAMTX_URL = "https://github.com/bluenviron/mediamtx";
-    public static final String AUTHOR     = "Luan Silva";
-    public static final String AUTHOR_URL = "https://github.com/luanscps";
+    public static final String AUTHOR       = "Luan Silva";
+    public static final String AUTHOR_URL   = "https://github.com/luanscps";
 
     private final MediaMTXService service = new MediaMTXService();
     private HeaderPanel  headerPanel;
@@ -26,8 +26,9 @@ public class AppWindow extends JFrame {
     public AppWindow() {
         setTitle("MediaMTX GUI \u2014 v" + VERSION);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setSize(1100, 720);
-        setMinimumSize(new Dimension(900, 600));
+        // +300px de largura (1100 -> 1400), +200px de altura (720 -> 920)
+        setSize(1400, 920);
+        setMinimumSize(new Dimension(1100, 720));
         setLocationRelativeTo(null);
         setIconImage(AppIcon.get());
 
@@ -96,31 +97,34 @@ public class AppWindow extends JFrame {
 
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         tabbedPane.setFont(Theme.FONT_MEDIUM);
-        tabbedPane.addTab("  \ud83d\udcca Dashboard  ",   new DashboardPanel(service));
-        tabbedPane.addTab("  \u2699 Config YAML  ",      new ConfigPanel(service));
-        tabbedPane.addTab("  \ud83c\udfa4 Gravacao  ",    new RecordPanel(service));
-        tabbedPane.addTab("  \ud83d\udd17 Paths  ",       new PathsPanel(service));
+        tabbedPane.addTab("  Dashboard  ",    new DashboardPanel(service));
+        tabbedPane.addTab("  Config YAML  ",  new ConfigPanel(service));
+        tabbedPane.addTab("  Gravacao  ",     new RecordPanel(service));
+        tabbedPane.addTab("  Paths  ",        new PathsPanel(service));
         root.add(tabbedPane, BorderLayout.CENTER);
 
         logPanel = new LogPanel();
+        // log ocupa ~200px (resizeWeight reduzido para dar mais espaco ao log)
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, root, logPanel);
-        split.setResizeWeight(0.72);
-        split.setDividerSize(5);
+        split.setResizeWeight(0.76);
+        split.setDividerSize(6);
         split.setBorder(null);
+        // Define tamanho minimo do log para ~200px
+        logPanel.setMinimumSize(new Dimension(0, 200));
         add(split);
     }
 
     private void showAbout() {
-        String html = "<html><body style='font-family:sans-serif;padding:8px;width:340px'>" +
-            "<h2 style='color:#4fc3f7'>MediaMTX GUI</h2>" +
-            "<p>Versao: <b>" + VERSION + "</b></p>" +
-            "<p>Interface grafica profissional para gerenciar o servidor <b>MediaMTX</b>.</p>" +
+        String html = "<html><body style='font-family:sans-serif;padding:10px;width:360px'>" +
+            "<h2 style='color:#0ea5e9;margin:0 0 6px 0'>MediaMTX GUI</h2>" +
+            "<p style='margin:4px 0'>Versao: <b>" + VERSION + "</b></p>" +
+            "<p style='margin:4px 0'>Interface grafica profissional para gerenciar o servidor <b>MediaMTX</b>.</p>" +
             "<hr>" +
-            "<p>&#9998; Desenvolvido por: <b>" + AUTHOR + "</b><br>" +
+            "<p style='margin:6px 0'>Desenvolvido por: <b>" + AUTHOR + "</b><br>" +
             "<a href='" + AUTHOR_URL + "'>" + AUTHOR_URL + "</a></p>" +
-            "<p>&#128230; Repositorio:<br><a href='" + REPO_URL + "'>" + REPO_URL + "</a></p>" +
-            "<p>&#128295; MediaMTX:<br><a href='" + MEDIAMTX_URL + "'>" + MEDIAMTX_URL + "</a></p>" +
-            "<hr><small>Licenca MIT &#8226; " + AUTHOR + " &#169; 2026</small>" +
+            "<p style='margin:6px 0'>Repositorio:<br><a href='" + REPO_URL + "'>" + REPO_URL + "</a></p>" +
+            "<p style='margin:6px 0'>MediaMTX:<br><a href='" + MEDIAMTX_URL + "'>" + MEDIAMTX_URL + "</a></p>" +
+            "<hr><small>Licenca MIT &bull; " + AUTHOR + " &copy; 2026</small>" +
             "</body></html>";
         JEditorPane pane = new JEditorPane("text/html", html);
         pane.setEditable(false);
