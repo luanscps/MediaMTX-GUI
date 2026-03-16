@@ -17,22 +17,29 @@ public class LogPanel extends JPanel {
 
     public LogPanel() {
         setLayout(new BorderLayout());
-        setBackground(Theme.BG_SIDEBAR);
-        setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.BORDER));
+        setBackground(new Color(248, 250, 252));
+        setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.BORDER_MED));
 
-        JLabel lbl = new JLabel("  Log do Processo");
-        lbl.setFont(Theme.FONT_BOLD); lbl.setForeground(Theme.TEXT_MUTED);
-        lbl.setBorder(new EmptyBorder(4,4,4,4));
-        add(lbl, BorderLayout.NORTH);
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(241, 245, 249));
+        header.setBorder(new EmptyBorder(4, 10, 4, 10));
+        JLabel lbl = new JLabel("\uD83D\uDDC2  Log do Processo");
+        lbl.setFont(Theme.FONT_BOLD);
+        lbl.setForeground(Theme.TEXT_DIM);
+        header.add(lbl, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
 
         area = new JTextArea();
         area.setEditable(false);
-        area.setFont(Theme.FONT_MONO);
-        area.setBackground(new Color(18, 18, 28));
-        area.setForeground(new Color(0, 220, 100));
-        area.setCaretColor(Theme.ACCENT);
-        area.setBorder(new EmptyBorder(4, 8, 4, 8));
-        add(new JScrollPane(area), BorderLayout.CENTER);
+        area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        area.setBackground(new Color(15, 23, 42));
+        area.setForeground(new Color(134, 239, 172)); // verde claro
+        area.setCaretColor(new Color(56, 189, 248));
+        area.setBorder(new EmptyBorder(6, 10, 6, 10));
+
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setBorder(null);
+        add(scroll, BorderLayout.CENTER);
     }
 
     public void append(String msg) {

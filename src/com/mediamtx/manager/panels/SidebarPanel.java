@@ -16,59 +16,71 @@ public class SidebarPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(Theme.BG_SIDEBAR);
         setPreferredSize(new Dimension(200, 0));
-        setBorder(new EmptyBorder(16, 12, 16, 12));
+        setBorder(new EmptyBorder(18, 14, 18, 14));
 
         addSection("SERVIDOR");
-        valStatus = infoRow("Status", "Parado");
-        infoRow("Config", "mediamtx.yml");
+        valStatus = infoRow("Status", "Parado", new Color(248, 113, 113));
+        infoRow("Config", "mediamtx.yml", Theme.SIDEBAR_TEXT);
 
         addDivider();
         addSection("PROTOCOLOS");
-        infoRow("RTSP",   ":8554");
-        infoRow("RTMP",   ":1935");
-        infoRow("HLS",    ":8888");
-        infoRow("WebRTC", ":8889");
-        infoRow("SRT",    ":8890");
+        infoRow("RTSP",   ":8554", new Color(56, 189, 248));
+        infoRow("RTMP",   ":1935", new Color(99, 179, 237));
+        infoRow("HLS",    ":8888", new Color(251, 191, 36));
+        infoRow("WebRTC", ":8889", new Color(52,  211, 153));
+        infoRow("SRT",    ":8890", new Color(192, 132, 252));
 
         addDivider();
         addSection("API REST");
-        JLabel apiLink = new JLabel("<html><a href=''>localhost:9997</a></html>");
+        JLabel apiLink = new JLabel("<html><a href='#' style='color:#38bdf8'>localhost:9997</a></html>");
         apiLink.setFont(Theme.FONT_SMALL);
-        apiLink.setForeground(Theme.ACCENT);
         apiLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        apiLink.setAlignmentX(LEFT_ALIGNMENT);
         apiLink.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 AppWindow.openBrowser("http://localhost:9997");
             }
         });
-        apiLink.setAlignmentX(LEFT_ALIGNMENT);
         add(apiLink);
+
+        addDivider();
+        addSection("CAMERA APP");
+        JLabel camLink = new JLabel("<html><a href='#' style='color:#34d399'>camera2api-brSS</a></html>");
+        camLink.setFont(Theme.FONT_SMALL);
+        camLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        camLink.setAlignmentX(LEFT_ALIGNMENT);
+        camLink.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                AppWindow.openBrowser("https://github.com/luanscps/camera2api-brSS/tree/v4-ui");
+            }
+        });
+        add(camLink);
 
         add(Box.createVerticalGlue());
 
-        JLabel credit = new JLabel("<html><center><small>by <b>Luan Silva</b></small></center></html>");
+        JLabel credit = new JLabel("<html><center>by <b style='color:#38bdf8'>Luan Silva</b></center></html>");
         credit.setFont(Theme.FONT_SMALL);
-        credit.setForeground(Theme.TEXT_MUTED);
+        credit.setForeground(Theme.SIDEBAR_TEXT_MUTED);
         credit.setAlignmentX(CENTER_ALIGNMENT);
         add(credit);
     }
 
     private void addSection(String title) {
         JLabel lbl = new JLabel(title);
-        lbl.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10));
-        lbl.setForeground(Theme.TEXT_MUTED);
+        lbl.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 9));
+        lbl.setForeground(new Color(71, 85, 105));
         lbl.setAlignmentX(LEFT_ALIGNMENT);
         add(lbl);
-        add(Box.createVerticalStrut(4));
+        add(Box.createVerticalStrut(5));
     }
 
-    private JLabel infoRow(String key, String val) {
+    private JLabel infoRow(String key, String val, Color valColor) {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(false);
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
         row.setAlignmentX(LEFT_ALIGNMENT);
-        JLabel k = new JLabel(key); k.setFont(Theme.FONT_SMALL); k.setForeground(Theme.TEXT_MUTED);
-        JLabel v = new JLabel(val); v.setFont(Theme.FONT_BOLD);  v.setForeground(Theme.TEXT);
+        JLabel k = new JLabel(key); k.setFont(Theme.FONT_SMALL); k.setForeground(new Color(100, 116, 139));
+        JLabel v = new JLabel(val); v.setFont(Theme.FONT_BOLD);  v.setForeground(valColor);
         row.add(k, BorderLayout.WEST);
         row.add(v, BorderLayout.EAST);
         add(row);
@@ -79,7 +91,7 @@ public class SidebarPanel extends JPanel {
     private void addDivider() {
         add(Box.createVerticalStrut(10));
         JSeparator sep = new JSeparator();
-        sep.setForeground(Theme.BORDER);
+        sep.setForeground(new Color(51, 65, 85));
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         add(sep);
         add(Box.createVerticalStrut(10));
@@ -87,6 +99,6 @@ public class SidebarPanel extends JPanel {
 
     public void updateStatus(boolean running) {
         valStatus.setText(running ? "Rodando" : "Parado");
-        valStatus.setForeground(running ? Theme.SUCCESS : Theme.DANGER);
+        valStatus.setForeground(running ? new Color(52, 211, 153) : new Color(248, 113, 113));
     }
 }
