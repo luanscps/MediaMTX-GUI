@@ -1,13 +1,12 @@
 package com.mediamtx.manager.panels;
 
 import com.mediamtx.manager.theme.Theme;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.io.*;
-import java.nio.file.*;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class LogPanel extends JPanel {
@@ -16,50 +15,47 @@ public class LogPanel extends JPanel {
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public LogPanel() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(248, 250, 252));
-        setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.BORDER_MED));
+        setLayout(new MigLayout("insets 12, gap 8", "[grow]", "[][grow]"));
+        setBackground(Theme.BG);
 
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(241, 245, 249));
-        header.setBorder(new EmptyBorder(4, 10, 4, 10));
-        JLabel lbl = new JLabel("\uD83D\uDDC2  Log do Processo");
-        lbl.setFont(Theme.FONT_BOLD);
-        lbl.setForeground(Theme.TEXT_DIM);
-        header.add(lbl, BorderLayout.WEST);
-        add(header, BorderLayout.NORTH);
+        JPanel toolbar = new JPanel(new MigLayout("insets 0, gap 8", "[][][]push", "[]"));
+        toolbar.setOpaque(false);
+
+        JButton btnClear  = Theme.warningButton("Limpar");
+        JButton btnCopy   = Theme.primaryButton("Copiar tudo");
+        JLabel  hint      = new JLabel("Log em tempo real do processo MediaMTX");
+        hint.setFont(Theme.FONT_SMALL);
+        hint.setForeground(Theme.TEXT_DIM);
+
+        toolbar.add(btnClear);
+        toolbar.add(btnCopy);
+        toolbar.add(hint);
 
         area = new JTextArea();
         area.setEditable(false);
-        area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        area.setFont(Theme.FONT_MONO);
         area.setBackground(new Color(15, 23, 42));
-        area.setForeground(new Color(134, 239, 172)); // verde claro
-        area.setCaretColor(new Color(56, 189, 248));
-        area.setBorder(new EmptyBorder(6, 10, 6, 10));
+        area.setForeground(new Color(203, 213, 225));
+        area.setCaretColor(Color.WHITE);
+        area.setBorder(new EmptyBorder(10, 12, 10, 12));
 
         JScrollPane scroll = new JScrollPane(area);
-        scroll.setBorder(null);
-        add(scroll, BorderLayout.CENTER);
+        scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER_MED));
+
+        btnClear.addActionListener(e -> area.setText(""));
+        btnCopy.addActionListener(e -> {
+            area.selectAll();
+            area.copy();
+            area.select(0, 0);
+        });
+
+        add(toolbar, "growx, wrap");
+        add(scroll,  "grow");
     }
 
     public void append(String msg) {
-        String ts = LocalDateTime.now().format(FMT);
+        String ts = LocalTime.now().format(FMT);
         area.append("[" + ts + "] " + msg + "\n");
         area.setCaretPosition(area.getDocument().getLength());
-    }
-
-    public void clear() { area.setText(""); }
-
-    public void saveToFile(Component parent) {
-        JFileChooser fc = new JFileChooser();
-        fc.setSelectedFile(new File("mediamtx-log.txt"));
-        if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-            try {
-                Files.writeString(fc.getSelectedFile().toPath(), area.getText());
-                JOptionPane.showMessageDialog(parent, "Log salvo!", "OK", JOptionPane.INFORMATION_MESSAGE);
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(parent, "Erro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        }
     }
 }

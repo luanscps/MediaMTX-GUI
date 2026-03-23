@@ -177,10 +177,10 @@ public class SourcesPanel extends JPanel {
         }, "sources-refresh").start();
     }
 
-    // ── HTTP GET simples ─────────────────────────────────────────────────────
+    // ── HTTP GET — sem new URL(String) deprecated ────────────────────────────
     private String httpGet(String urlStr) throws Exception {
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        URI uri = URI.create(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
         conn.setRequestMethod("GET");
         conn.setConnectTimeout(2000);
         conn.setReadTimeout(3000);
@@ -260,7 +260,7 @@ public class SourcesPanel extends JPanel {
         if (lower.startsWith("rtsp://"))    return "RTSP pull";
         if (lower.startsWith("rtmp://"))    return "RTMP pull";
         if (lower.startsWith("srt://"))     return "SRT pull";
-        if (lower.startsWith("http://") && lower.contains(".m3u8")) return "HLS pull";
+        if (lower.startsWith("http://")  && lower.contains(".m3u8")) return "HLS pull";
         if (lower.startsWith("https://") && lower.contains(".m3u8")) return "HLS pull";
         if (lower.startsWith("whip://"))    return "WebRTC WHIP";
         if (lower.startsWith("udp://"))     return "UDP/MPEG-TS";

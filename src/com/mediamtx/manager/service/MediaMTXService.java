@@ -1,5 +1,8 @@
 package com.mediamtx.manager.service;
 
+import com.mediamtx.manager.service.YamlPresetService;
+import com.mediamtx.manager.service.YamlPresetService.Config;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -8,9 +11,9 @@ import java.util.function.Consumer;
 
 public class MediaMTXService {
 
-    private Process process;
-    private String  binaryPath = "./mediamtx";
-    private String  configPath = "./mediamtx.yml";
+    private Process  process;
+    private String   binaryPath = "./mediamtx";
+    private String   configPath = "./mediamtx.yml";
     private Consumer<String> logConsumer;
 
     public void start() {
@@ -77,29 +80,30 @@ public class MediaMTXService {
     }
 
     public void saveConfigContent(String content) {
-        try { Files.writeString(Path.of(configPath), content); log("[CONFIG] YAML salvo."); }
-        catch (IOException e) { log("[ERRO] Falha ao salvar YAML: " + e.getMessage()); }
+        try {
+            Files.writeString(Path.of(configPath), content);
+            log("[CONFIG] mediamtx.yml salvo em: " + configPath);
+        } catch (IOException e) {
+            log("[ERRO] Falha ao salvar YAML: " + e.getMessage());
+            JOptionPane.showMessageDialog(null,
+                "Nao foi possivel salvar o arquivo:\n" + configPath +
+                "\n\n" + e.getMessage(),
+                "Erro ao salvar", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public String getBinaryPath() { return binaryPath; }
-    public String getConfigPath() { return configPath; }
-    public void setLogConsumer(Consumer<String> c) { this.logConsumer = c; }
-    private void log(String msg) { if (logConsumer != null) logConsumer.accept(msg); }
+    public String getConfigPath()  { return configPath; }
+    public void   setBinaryPath(String p) { this.binaryPath = p; }
+    public void   setConfigPath(String p) { this.configPath = p; }
+    public void   setLogConsumer(Consumer<String> c) { this.logConsumer = c; }
+    private void  log(String msg) { if (logConsumer != null) logConsumer.accept(msg); }
 
+    /**
+     * YAML padrao completo e valido para o MediaMTX.
+     * Gerado pelo YamlPresetService com config padrao.
+     */
     public String defaultYaml() {
-        return "# MediaMTX - Configuracao\n" +
-               "# Docs: https://github.com/bluenviron/mediamtx\n\n" +
-               "api: yes\napiAddress: :9997\n\n" +
-               "rtsp: yes\nrtspAddress: :8554\n\n" +
-               "rtmp: yes\nrtmpAddress: :1935\n\n" +
-               "hls: yes\nhlsAddress: :8888\n\n" +
-               "webrtc: yes\nwebrtcAddress: :8889\n\n" +
-               "srt: yes\nsrtAddress: :8890\n\n" +
-               "record: no\n" +
-               "recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f\n" +
-               "recordFormat: fmp4\n" +
-               "recordSegmentDuration: 1h\n" +
-               "recordDeleteAfter: 24h\n\n" +
-               "paths:\n  all_others:\n";
+        return YamlPresetService.generate(new Config());
     }
 }

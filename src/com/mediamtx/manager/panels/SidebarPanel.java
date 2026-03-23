@@ -14,7 +14,7 @@ public class SidebarPanel extends JPanel {
 
     public SidebarPanel(MediaMTXService service, AppWindow win) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBackground(Theme.BG_SIDEBAR);
+        setBackground(Theme.BG_HEADER);   // BG_SIDEBAR renomeado para BG_HEADER no novo Theme
         setPreferredSize(new Dimension(200, 0));
         setBorder(new EmptyBorder(18, 14, 18, 14));
 
@@ -24,10 +24,10 @@ public class SidebarPanel extends JPanel {
 
         addDivider();
         addSection("PROTOCOLOS");
-        infoRow("RTSP",   ":8554", new Color(56, 189, 248));
-        infoRow("RTMP",   ":1935", new Color(99, 179, 237));
-        infoRow("HLS",    ":8888", new Color(251, 191, 36));
-        infoRow("WebRTC", ":8889", new Color(52,  211, 153));
+        infoRow("RTSP",   ":8554", new Color( 56, 189, 248));
+        infoRow("RTMP",   ":1935", new Color( 99, 179, 237));
+        infoRow("HLS",    ":8888", new Color(251, 191,  36));
+        infoRow("WebRTC", ":8889", new Color( 52, 211, 153));
         infoRow("SRT",    ":8890", new Color(192, 132, 252));
 
         addDivider();
