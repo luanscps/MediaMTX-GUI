@@ -18,9 +18,15 @@ public class AddSourceDialog extends JDialog {
     private JTextField tfPath;
     private JTextField tfUrl;
     private JTextField tfIp;
+    private JTextField tfPort;
+    private JTextField tfUser;
+    private JTextField tfPass;
     private JComboBox<String> cbType;
     private JTextArea  taPreview;
     private JLabel     lblIp;
+    private JLabel     lblPort;
+    private JLabel     lblUser;
+    private JLabel     lblPass;
     private JButton    btnWebCtrl;
 
     private static final String[] TYPES = {
@@ -29,13 +35,19 @@ public class AddSourceDialog extends JDialog {
         "SRT push   (encoder → servidor)",
         "SRT pull   (servidor puxa SRT)",
         "FFmpeg runOnDemand  (webcam / arquivo)",
-        "Câmera Android — CAMSTREAMER-BR"
+        "Câmera Android — CAMSTREAMER-BR",
+        "HLS pull   (servidor puxa stream HLS)",
+        "UDP/MPEG-TS  (encoder FFmpeg → servidor)",
+        "RTMP pull  (servidor puxa de RTMP externo)",
+        "RTSP push passivo  (câmera envia diretamente)",
+        "WebRTC WHIP  (browser / OBS → servidor)",
+        "Reolink / Dahua NVR  (RTSP com autenticação)"
     };
 
     public AddSourceDialog(Window owner, OnInsertCallback callback) {
         super(owner, "➕  Adicionar Fonte de Retransmissão", ModalityType.APPLICATION_MODAL);
         this.callback = callback;
-        setSize(560, 450);
+        setSize(600, 560);
         setResizable(false);
         setLocationRelativeTo(owner);
         buildUI();
@@ -75,9 +87,9 @@ public class AddSourceDialog extends JDialog {
         tfUrl = field("rtsp://192.168.1.X:8554/live");
         panel.add(tfUrl, g);
 
-        // Linha 3: IP Android
+        // Linha 3: IP Android / NVR
         g.gridx = 0; g.gridy = 3; g.weightx = 0.28;
-        lblIp = lbl("IP do Android:");
+        lblIp = lbl("IP do dispositivo:");
         panel.add(lblIp, g);
         g.gridx = 1; g.weightx = 0.72;
         tfIp = field("192.168.1.X");
@@ -85,8 +97,38 @@ public class AddSourceDialog extends JDialog {
         lblIp.setVisible(false);
         tfIp.setVisible(false);
 
-        // Linha 4: preview YAML
+        // Linha 4: Porta (NVR/SRT customizado)
         g.gridx = 0; g.gridy = 4; g.weightx = 0.28;
+        lblPort = lbl("Porta:");
+        panel.add(lblPort, g);
+        g.gridx = 1; g.weightx = 0.72;
+        tfPort = field("554");
+        panel.add(tfPort, g);
+        lblPort.setVisible(false);
+        tfPort.setVisible(false);
+
+        // Linha 5: Usuário (NVR)
+        g.gridx = 0; g.gridy = 5; g.weightx = 0.28;
+        lblUser = lbl("Usuário:");
+        panel.add(lblUser, g);
+        g.gridx = 1; g.weightx = 0.72;
+        tfUser = field("admin");
+        panel.add(tfUser, g);
+        lblUser.setVisible(false);
+        tfUser.setVisible(false);
+
+        // Linha 6: Senha (NVR)
+        g.gridx = 0; g.gridy = 6; g.weightx = 0.28;
+        lblPass = lbl("Senha:");
+        panel.add(lblPass, g);
+        g.gridx = 1; g.weightx = 0.72;
+        tfPass = field("senha");
+        panel.add(tfPass, g);
+        lblPass.setVisible(false);
+        tfPass.setVisible(false);
+
+        // Linha 7: preview YAML
+        g.gridx = 0; g.gridy = 7; g.weightx = 0.28;
         panel.add(lbl("Preview YAML:"), g);
         g.gridx = 1; g.weightx = 0.72;
         taPreview = new JTextArea(6, 32);
@@ -100,8 +142,8 @@ public class AddSourceDialog extends JDialog {
         ps.setBorder(BorderFactory.createLineBorder(Theme.BORDER_MED));
         panel.add(ps, g);
 
-        // Linha 5: botões
-        g.gridx = 0; g.gridy = 5; g.gridwidth = 2; g.weightx = 1.0;
+        // Linha 8: botões
+        g.gridx = 0; g.gridy = 8; g.gridwidth = 2; g.weightx = 1.0;
         g.insets = new Insets(14, 4, 4, 4);
         panel.add(buildButtonRow(), g);
 
@@ -113,6 +155,9 @@ public class AddSourceDialog extends JDialog {
         tfPath.addKeyListener(kl);
         tfUrl.addKeyListener(kl);
         tfIp.addKeyListener(kl);
+        tfPort.addKeyListener(kl);
+        tfUser.addKeyListener(kl);
+        tfPass.addKeyListener(kl);
         cbType.addActionListener(e -> updatePreview());
         updatePreview();
     }
@@ -151,38 +196,51 @@ public class AddSourceDialog extends JDialog {
     }
 
     private void updatePreview() {
-        int    idx       = cbType.getSelectedIndex();
-        String path      = tfPath.getText().trim().isEmpty() ? "meu_path" : tfPath.getText().trim();
-        String url       = tfUrl.getText().trim();
-        boolean isAndroid = (idx == 5);
+        int    idx        = cbType.getSelectedIndex();
+        String path       = tfPath.getText().trim().isEmpty() ? "meu_path" : tfPath.getText().trim();
+        String url        = tfUrl.getText().trim();
+        String ip         = tfIp.getText().trim().isEmpty() ? "192.168.1.X" : tfIp.getText().trim();
+        String port       = tfPort.getText().trim().isEmpty() ? "554" : tfPort.getText().trim();
+        String user       = tfUser.getText().trim().isEmpty() ? "admin" : tfUser.getText().trim();
+        String pass       = tfPass.getText().trim().isEmpty() ? "senha" : tfPass.getText().trim();
 
-        lblIp.setVisible(isAndroid);
-        tfIp.setVisible(isAndroid);
-        tfUrl.setEnabled(idx == 1 || idx == 3 || idx == 4);
+        boolean isAndroid = (idx == 5);
+        boolean isNvr     = (idx == 11);
+        boolean hasIp     = isAndroid || isNvr;
+        boolean hasPort   = isNvr;
+        boolean hasCreds  = isNvr;
+
+        lblIp.setVisible(hasIp);   tfIp.setVisible(hasIp);
+        lblPort.setVisible(hasPort); tfPort.setVisible(hasPort);
+        lblUser.setVisible(hasCreds); tfUser.setVisible(hasCreds);
+        lblPass.setVisible(hasCreds); tfPass.setVisible(hasCreds);
         if (btnWebCtrl != null) btnWebCtrl.setVisible(isAndroid);
+
+        // Habilita campo URL apenas nos tipos que precisam de URL manual
+        tfUrl.setEnabled(idx == 1 || idx == 3 || idx == 4 || idx == 6 || idx == 7 || idx == 8 || idx == 10);
 
         String yaml;
         switch (idx) {
-            case 0:
+            case 0: // RTMP push
                 yaml = "paths:\n  " + path + ":\n"
                      + "    # Publisher envia para:\n"
                      + "    # rtmp://SEU_HOST:1935/" + path;
                 break;
-            case 1:
+            case 1: // RTSP pull
                 yaml = "paths:\n  " + path + ":\n"
                      + "    source: " + (url.isEmpty() ? "rtsp://IP:554/stream" : url) + "\n"
                      + "    sourceOnDemand: false";
                 break;
-            case 2:
+            case 2: // SRT push
                 yaml = "paths:\n  " + path + ":\n"
                      + "    # Publisher envia para:\n"
                      + "    # srt://SEU_HOST:8890?streamid=publish:" + path + "&pkt_size=1316";
                 break;
-            case 3:
+            case 3: // SRT pull
                 yaml = "paths:\n  " + path + ":\n"
                      + "    source: " + (url.isEmpty() ? "srt://IP:8890?streamid=request:" + path : url);
                 break;
-            case 4:
+            case 4: // FFmpeg runOnDemand
                 String src = url.isEmpty() ? "/dev/video0" : url;
                 yaml = "paths:\n  " + path + ":\n"
                      + "    runOnDemand: >-\n"
@@ -192,11 +250,45 @@ public class AddSourceDialog extends JDialog {
                      + "      -f rtsp rtsp://localhost:8554/$MTX_PATH\n"
                      + "    runOnDemandRestart: yes";
                 break;
-            case 5:
-                String ip = tfIp.getText().trim().isEmpty() ? "192.168.1.X" : tfIp.getText().trim();
+            case 5: // Câmera Android
                 yaml = "paths:\n  " + path + ":\n"
                      + "    source: rtsp://" + ip + ":8554/live\n"
                      + "    # WebControl do app: http://" + ip + ":8080";
+                break;
+            case 6: // HLS pull
+                yaml = "paths:\n  " + path + ":\n"
+                     + "    source: " + (url.isEmpty() ? "http://IP/stream.m3u8" : url) + "\n"
+                     + "    sourceOnDemand: false";
+                break;
+            case 7: // UDP/MPEG-TS
+                String udpSrc = url.isEmpty() ? "udp://0.0.0.0:8890" : url;
+                yaml = "paths:\n  " + path + ":\n"
+                     + "    runOnInit: >-\n"
+                     + "      ffmpeg -i " + udpSrc + "\n"
+                     + "      -c copy -f rtsp rtsp://localhost:8554/" + path + "\n"
+                     + "    runOnInitRestart: yes";
+                break;
+            case 8: // RTMP pull
+                yaml = "paths:\n  " + path + ":\n"
+                     + "    source: " + (url.isEmpty() ? "rtmp://IP:1935/live/" + path : url) + "\n"
+                     + "    sourceOnDemand: false";
+                break;
+            case 9: // RTSP push passivo
+                yaml = "paths:\n  " + path + ":\n"
+                     + "    # Câmera/encoder envia diretamente para:\n"
+                     + "    # rtsp://SEU_HOST:8554/" + path + "\n"
+                     + "    # Nenhuma configuração extra necessária (MediaMTX aceita por padrão)";
+                break;
+            case 10: // WebRTC WHIP
+                yaml = "paths:\n  " + path + ":\n"
+                     + "    source: " + (url.isEmpty() ? "whip://SEU_HOST:8889/" + path : url) + "\n"
+                     + "    # OBS: Server → WHIP → http://SEU_HOST:8889/" + path + "/whip";
+                break;
+            case 11: // Reolink / Dahua NVR
+                yaml = "paths:\n  " + path + ":\n"
+                     + "    source: rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/cam/realmonitor?channel=1&subtype=0\n"
+                     + "    sourceOnDemand: false\n"
+                     + "    # Ajuste channel= e subtype= conforme modelo do NVR";
                 break;
             default:
                 yaml = "";

@@ -123,7 +123,7 @@ public class SourcesPanel extends JPanel {
 
         TableColumnModel cm = table.getColumnModel();
         cm.getColumn(0).setPreferredWidth(140);
-        cm.getColumn(1).setPreferredWidth(150);
+        cm.getColumn(1).setPreferredWidth(160);
         cm.getColumn(2).setPreferredWidth(320);
         cm.getColumn(3).setPreferredWidth(100);
         cm.getColumn(4).setPreferredWidth(80);
@@ -140,8 +140,8 @@ public class SourcesPanel extends JPanel {
             "<html>Atualização automática a cada <b>5s</b> via API REST " +
             "(<code>GET /v3/paths/list</code>). " +
             "Use <b>➕ Adicionar Fonte</b> para inserir um novo path no <b>mediamtx.yml</b>. " +
-            "Para câmeras Android com <b>CAMSTREAMER-BR</b>, use " +
-            "<code>source: rtsp://IP:8554/live</code>.</html>");
+            "Suporte a <b>RTMP</b>, <b>RTSP</b>, <b>SRT</b>, <b>HLS</b>, <b>WebRTC WHIP</b>, " +
+            "<b>UDP/MPEG-TS</b>, <b>NVR Reolink/Dahua</b> e <b>Câmera Android</b>.</html>");
         info.setFont(Theme.FONT_SMALL);
         info.setForeground(Theme.TEXT_DIM);
         info.setBorder(new EmptyBorder(10, 0, 0, 0));
@@ -257,14 +257,18 @@ public class SourcesPanel extends JPanel {
 
     private String detectSourceType(String obj, String sourceUrl) {
         String lower = sourceUrl.toLowerCase();
-        if (lower.startsWith("rtsp://"))   return "RTSP pull";
-        if (lower.startsWith("rtmp://"))   return "RTMP pull";
-        if (lower.startsWith("srt://"))    return "SRT pull";
-        if (obj.contains("rtmpConn"))      return "RTMP push";
-        if (obj.contains("rtspSession"))   return "RTSP push";
-        if (obj.contains("srtConn"))       return "SRT push";
-        if (obj.contains("webrtcSession")) return "WebRTC push";
-        if (obj.contains("rpiCamera"))     return "RPi Camera";
+        if (lower.startsWith("rtsp://"))    return "RTSP pull";
+        if (lower.startsWith("rtmp://"))    return "RTMP pull";
+        if (lower.startsWith("srt://"))     return "SRT pull";
+        if (lower.startsWith("http://") && lower.contains(".m3u8")) return "HLS pull";
+        if (lower.startsWith("https://") && lower.contains(".m3u8")) return "HLS pull";
+        if (lower.startsWith("whip://"))    return "WebRTC WHIP";
+        if (lower.startsWith("udp://"))     return "UDP/MPEG-TS";
+        if (obj.contains("rtmpConn"))       return "RTMP push";
+        if (obj.contains("rtspSession"))    return "RTSP push";
+        if (obj.contains("srtConn"))        return "SRT push";
+        if (obj.contains("webrtcSession"))  return "WebRTC push";
+        if (obj.contains("rpiCamera"))      return "RPi Camera";
         return "publisher externo";
     }
 
