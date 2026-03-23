@@ -35,7 +35,7 @@ public class HeaderPanel extends JPanel {
         // ── Botões ────────────────────────────────────────────────────────
         JButton btnStart   = headerBtn("\u25b6  Iniciar",   Theme.SUCCESS,  Color.WHITE);
         JButton btnStop    = headerBtn("\u25a0  Parar",     Theme.DANGER,   Color.WHITE);
-        JButton btnRestart = headerBtn("\u21ba  Reiniciar", Theme.WARNING,  new Color(30, 41, 59));
+        JButton btnRestart = headerBtn("\u21ba  Reiniciar", Theme.WARNING,  Theme.BG_HEADER);
 
         btnStart.addActionListener(e -> service.start());
         btnStop.addActionListener(e -> service.stop());
@@ -54,7 +54,7 @@ public class HeaderPanel extends JPanel {
         add(right,  "wrap");
 
         JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(51, 65, 85));
+        sep.setForeground(Theme.TEXT_DIM);
         add(sep, "span 2, growx, gapy 4 0");
     }
 

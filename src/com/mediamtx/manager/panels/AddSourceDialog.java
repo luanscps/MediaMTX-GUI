@@ -108,7 +108,7 @@ public class AddSourceDialog extends JDialog {
         taPreview = new JTextArea(7, 40);
         taPreview.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         taPreview.setBackground(new Color(10, 15, 30));
-        taPreview.setForeground(new Color(134, 239, 172));
+        taPreview.setForeground(new Color(106, 153, 85));
         taPreview.setCaretColor(Color.WHITE);
         taPreview.setEditable(false);
         taPreview.setBorder(new EmptyBorder(8, 10, 8, 10));
@@ -142,7 +142,7 @@ public class AddSourceDialog extends JDialog {
             AppWindow.openBrowser("http://" + ip + ":8080");
         });
 
-        JButton btnCancel = btn("Cancelar", new Color(71, 85, 105));
+        JButton btnCancel = btn("Cancelar", Theme.TEXT_DIM);
         btnCancel.addActionListener(e -> dispose());
 
         JButton btnInsert = btn("✔  Inserir no YAML", Theme.ACCENT);

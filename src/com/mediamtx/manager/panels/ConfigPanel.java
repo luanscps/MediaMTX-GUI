@@ -38,8 +38,8 @@ public class ConfigPanel extends JPanel {
         // ── Editor YAML ───────────────────────────────────────────────────
         editor = new JTextArea(service.loadConfigContent());
         editor.setFont(Theme.FONT_MONO);
-        editor.setBackground(new Color(15, 23, 42));
-        editor.setForeground(new Color(134, 239, 172));
+        editor.setBackground(Theme.TEXT);
+        editor.setForeground(new Color(106, 153, 85));
         editor.setCaretColor(new Color(56, 189, 248));
         editor.setTabSize(2);
         editor.setBorder(new EmptyBorder(12, 14, 12, 14));

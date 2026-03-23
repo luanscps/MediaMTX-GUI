@@ -66,7 +66,7 @@ public class SourcesPanel extends JPanel {
         btnAdd.addActionListener(e -> openAddSourceDialog());
         btns.add(btnAdd);
 
-        JButton btnRefresh = makeButton("↺ Atualizar", new Color(100, 116, 139));
+        JButton btnRefresh = makeButton("↺ Atualizar", Theme.TEXT_MUTED);
         btnRefresh.addActionListener(e -> refreshPaths());
         btns.add(btnRefresh);
 
@@ -90,7 +90,7 @@ public class SourcesPanel extends JPanel {
         table.setShowHorizontalLines(true);
         table.setShowVerticalLines(false);
         table.getTableHeader().setFont(Theme.FONT_BOLD);
-        table.getTableHeader().setBackground(new Color(30, 41, 59));
+        table.getTableHeader().setBackground(Theme.BG_HEADER);
         table.getTableHeader().setForeground(Theme.TEXT_DIM);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -115,7 +115,7 @@ public class SourcesPanel extends JPanel {
                     setText(val);
                 }
                 setBackground(sel ? new Color(14, 165, 233, 40)
-                    : (r % 2 == 0 ? Theme.BG_CARD : new Color(22, 30, 46)));
+                    : (r % 2 == 0 ? Theme.BG_CARD : Theme.BG));
                 setBorder(new EmptyBorder(0, 10, 0, 10));
                 return this;
             }

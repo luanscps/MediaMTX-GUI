@@ -40,7 +40,7 @@ public class PathsPanel extends JPanel {
         table.setShowHorizontalLines(true);
         table.setShowVerticalLines(false);
         table.getTableHeader().setFont(Theme.FONT_BOLD);
-        table.getTableHeader().setBackground(new Color(241, 245, 249));
+        table.getTableHeader().setBackground(Theme.BG_CARD);
         table.getTableHeader().setForeground(Theme.TEXT_DIM);
 
         // Alterna cor das linhas
@@ -50,7 +50,7 @@ public class PathsPanel extends JPanel {
                 super.getTableCellRendererComponent(t, v, sel, foc, r, c);
                 setForeground(Theme.TEXT);
                 setBackground(sel ? new Color(14, 165, 233, 40)
-                    : (r % 2 == 0 ? Theme.BG_CARD : new Color(248, 250, 252)));
+                    : (r % 2 == 0 ? Theme.BG_CARD : Theme.BG));
                 setBorder(new EmptyBorder(0, 8, 0, 8));
                 return this;
             }

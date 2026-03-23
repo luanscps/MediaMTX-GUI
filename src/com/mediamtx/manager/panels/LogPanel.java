@@ -34,8 +34,8 @@ public class LogPanel extends JPanel {
         area = new JTextArea();
         area.setEditable(false);
         area.setFont(Theme.FONT_MONO);
-        area.setBackground(new Color(15, 23, 42));
-        area.setForeground(new Color(203, 213, 225));
+        area.setBackground(Theme.TEXT);
+        area.setForeground(Theme.BORDER_MED);
         area.setCaretColor(Color.WHITE);
         area.setBorder(new EmptyBorder(10, 12, 10, 12));
 

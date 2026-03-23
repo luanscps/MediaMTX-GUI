@@ -590,8 +590,8 @@ public class ConfigWizardPanel extends JPanel {
         JTextArea ta = new JTextArea(yaml);
         ta.setFont(Theme.FONT_MONO);
         ta.setEditable(false);
-        ta.setBackground(new Color(15, 23, 42));
-        ta.setForeground(new Color(134, 239, 172));
+        ta.setBackground(Theme.TEXT);
+        ta.setForeground(new Color(106, 153, 85));
         JScrollPane sp = new JScrollPane(ta);
         sp.setPreferredSize(new Dimension(760, 520));
         JOptionPane.showMessageDialog(this, sp,

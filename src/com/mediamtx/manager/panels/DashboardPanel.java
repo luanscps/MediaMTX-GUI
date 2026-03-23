@@ -104,9 +104,19 @@ public class DashboardPanel extends JPanel {
     }
 
     private JPanel infoCard(String html, Color borderColor) {
-        JEditorPane pane = new JEditorPane("text/html", html);
+        javax.swing.text.html.HTMLEditorKit kit = new javax.swing.text.html.HTMLEditorKit();
+        javax.swing.text.html.StyleSheet css = kit.getStyleSheet();
+        css.addRule("body { background:#3c3f41; color:#bbbbbb; font-family:sans-serif; font-size:14px; }");
+        css.addRule("a { color:#9f6bff; text-decoration:underline; }");
+        css.addRule("code { background:#2b2b2b; color:#a9b7c6; font-size:13px; padding:1px 4px; }");
+        css.addRule("b { color:#e0e0e0; }");
+
+        JEditorPane pane = new JEditorPane();
+        pane.setEditorKit(kit);
+        pane.setText(html);
         pane.setEditable(false);
-        pane.setOpaque(false);
+        pane.setOpaque(true);
+        pane.setBackground(Theme.BG_CARD);
         pane.setBorder(new EmptyBorder(14, 16, 14, 16));
         pane.addHyperlinkListener(ev -> {
             if (ev.getEventType() == javax.swing.event.HyperlinkEvent.EventType.ACTIVATED)
@@ -117,8 +127,10 @@ public class DashboardPanel extends JPanel {
             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(null);
+        scroll.getViewport().setBackground(Theme.BG_CARD);
 
         JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Theme.BG_CARD);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(borderColor, 2, true),
             new EmptyBorder(0, 0, 0, 0)));

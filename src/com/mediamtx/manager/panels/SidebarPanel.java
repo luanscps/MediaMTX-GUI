@@ -68,7 +68,7 @@ public class SidebarPanel extends JPanel {
     private void addSection(String title) {
         JLabel lbl = new JLabel(title);
         lbl.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 9));
-        lbl.setForeground(new Color(71, 85, 105));
+        lbl.setForeground(Theme.TEXT_DIM);
         lbl.setAlignmentX(LEFT_ALIGNMENT);
         add(lbl);
         add(Box.createVerticalStrut(5));
@@ -79,7 +79,7 @@ public class SidebarPanel extends JPanel {
         row.setOpaque(false);
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
         row.setAlignmentX(LEFT_ALIGNMENT);
-        JLabel k = new JLabel(key); k.setFont(Theme.FONT_SMALL); k.setForeground(new Color(100, 116, 139));
+        JLabel k = new JLabel(key); k.setFont(Theme.FONT_SMALL); k.setForeground(Theme.TEXT_MUTED);
         JLabel v = new JLabel(val); v.setFont(Theme.FONT_BOLD);  v.setForeground(valColor);
         row.add(k, BorderLayout.WEST);
         row.add(v, BorderLayout.EAST);
@@ -91,7 +91,7 @@ public class SidebarPanel extends JPanel {
     private void addDivider() {
         add(Box.createVerticalStrut(10));
         JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(51, 65, 85));
+        sep.setForeground(Theme.TEXT_DIM);
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         add(sep);
         add(Box.createVerticalStrut(10));
