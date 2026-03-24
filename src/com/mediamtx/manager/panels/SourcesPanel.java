@@ -135,17 +135,28 @@ public class SourcesPanel extends JPanel {
     }
 
     // ── Footer ───────────────────────────────────────────────────────────────
-    private JLabel buildFooter() {
+    private JPanel buildFooter() {
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setOpaque(true);
+        footer.setBackground(new Color(50, 48, 65));
+        footer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.BORDER),
+            new EmptyBorder(1, 12, 7, 12)));
+
         JLabel info = new JLabel(
-            "<html>Atualização automática a cada <b>5s</b> via API REST " +
-            "(<code>GET /v3/paths/list</code>). " +
-            "Use <b>➕ Adicionar Fonte</b> para inserir um novo path no <b>mediamtx.yml</b>. " +
-            "Suporte a <b>RTMP</b>, <b>RTSP</b>, <b>SRT</b>, <b>HLS</b>, <b>WebRTC WHIP</b>, " +
-            "<b>UDP/MPEG-TS</b>, <b>NVR Reolink/Dahua</b> e <b>Câmera Android</b>.</html>");
+            "<html>" +
+            "<span style='color:#9f6bff'><b>Atualizacao automatica a cada 5s</b></span>" +
+            "<span style='color:#bbbbbb'> via API REST &nbsp;&middot;&nbsp; </span>" +
+            "<span style='color:#bbbbbb'>Use </span>" +
+            "<span style='color:#ffc644'><b>+ Adicionar Fonte</b></span>" +
+            "<span style='color:#bbbbbb'> para inserir path no mediamtx.yml &nbsp;&middot;&nbsp; </span>" +
+            "<span style='color:#909090'>Suporta: RTMP &middot; RTSP &middot; SRT &middot; HLS &middot; WebRTC &middot; UDP/MPEG-TS &middot; NVR &middot; Camera Android</span>" +
+            "</html>");
         info.setFont(Theme.FONT_SMALL);
-        info.setForeground(Theme.TEXT_DIM);
-        info.setBorder(new EmptyBorder(10, 0, 0, 0));
-        return info;
+        footer.add(info, BorderLayout.CENTER);
+        footer.setMinimumSize(new Dimension(0, 70));
+        footer.setPreferredSize(new Dimension(0, 70));
+        return footer;
     }
 
     // ── Refresh via API REST ─────────────────────────────────────────────────

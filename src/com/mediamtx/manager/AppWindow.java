@@ -18,6 +18,7 @@ public class AppWindow extends JFrame {
     private SourcesPanel   sourcesPanel;
     private HeaderPanel    headerPanel;
     private JTabbedPane    tabs;
+    private com.mediamtx.manager.panels.MetricsPanel metricsPanel;
 
     public AppWindow() {
         super("MediaMTX GUI v1.0.0");
@@ -53,15 +54,18 @@ public class AppWindow extends JFrame {
 
         // ── NOVA ABA: Assistente de Configuracao ──────────────────────────
         ConfigWizardPanel wizardPanel = new ConfigWizardPanel(service, configPanel);
+        metricsPanel = new com.mediamtx.manager.panels.MetricsPanel(service);
 
         tabs.addTab("\uD83C\uDFE0  Dashboard",    null, dashboard,    "Visao geral e instrucoes");
         tabs.addTab("\uD83D\uDCF9  Sources",       null, sourcesPanel, "Fontes de retransmissao ativas");
         tabs.addTab("\u2699  Assistente",          null, wizardPanel,  "Configurar sem editar YAML manualmente");
+        tabs.addTab("\uD83D\uDCCA  M\u00e9tricas",  null, metricsPanel, "Streams ativos e leitores em tempo real");
         tabs.addTab("\uD83D\uDCC4  Config YAML",   null, configPanel,  "Editar o mediamtx.yml diretamente");
         tabs.addTab("\uD83D\uDDCE  Log",           null, logPanel,     "Saida do processo MediaMTX");
 
-        // Cor de destaque na aba Assistente
+        // Destaques nas abas
         tabs.setForegroundAt(2, Theme.SUCCESS);
+        tabs.setForegroundAt(3, Theme.ACCENT);
 
         add(tabs, BorderLayout.CENTER);
     }
@@ -117,7 +121,7 @@ public class AppWindow extends JFrame {
     /** Insere bloco YAML no editor e navega para a aba Config YAML */
     public void insertYamlAndNavigate(String block) {
         configPanel.appendYaml(block);
-        tabs.setSelectedIndex(3); // aba Config YAML
+        tabs.setSelectedIndex(4); // aba Config YAML
     }
 
     public static void openBrowser(String url) {
@@ -128,6 +132,7 @@ public class AppWindow extends JFrame {
     @Override
     public void dispose() {
         if (sourcesPanel != null) sourcesPanel.stopRefresh();
+        if (metricsPanel != null) metricsPanel.stopRefresh();
         service.stop();
         super.dispose();
     }
