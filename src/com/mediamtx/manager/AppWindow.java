@@ -108,8 +108,8 @@ public class AppWindow extends JFrame {
             openBrowser("https://github.com/luanscps/MediaMTX-GUI"));
         miAbout.addActionListener(e ->
             JOptionPane.showMessageDialog(this,
-                "MediaMTX GUI v1.0.0\nDesenvolvido por luanscps\n\n" +
-                "Integrado com camera2api-brSS",
+                "MediaMTX GUI v1.0.0\nDesenvolvido por Luan\n" +
+                "https://luanscps.github.io/\n\n",
                 "Sobre", JOptionPane.INFORMATION_MESSAGE));
         mHelp.add(miDocs); mHelp.add(miGithub);
         mHelp.addSeparator(); mHelp.add(miAbout);
