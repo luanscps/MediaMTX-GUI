@@ -5,23 +5,22 @@ import com.mediamtx.manager.service.MediaMTXService;
 import com.mediamtx.manager.theme.Theme;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.*;
 import java.net.URI;
 
 public class AppWindow extends JFrame {
 
     private final MediaMTXService service = new MediaMTXService();
-    private LogPanel       logPanel;
-    private ConfigPanel    configPanel;
-    private SourcesPanel   sourcesPanel;
-    private HeaderPanel    headerPanel;
-    private JTabbedPane    tabs;
-    private com.mediamtx.manager.panels.MetricsPanel metricsPanel;
+    private LogPanel         logPanel;
+    private ConfigPanel      configPanel;
+    private SourcesPanel     sourcesPanel;
+    private HeaderPanel      headerPanel;
+    private MetricsPanel     metricsPanel;
+    private RecordingsPanel  recordingsPanel;
+    private JTabbedPane      tabs;
 
     public AppWindow() {
-        super("MediaMTX GUI v1.0.0");
+        super("MediaMTX GUI v1.2.0");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1100, 720);
         setMinimumSize(new Dimension(860, 560));
@@ -29,7 +28,7 @@ public class AppWindow extends JFrame {
         try { setIconImage(AppIcon.get()); } catch (Exception ignored) {}
 
         service.setLogConsumer(msg -> SwingUtilities.invokeLater(() -> {
-            if (logPanel != null) logPanel.append(msg);
+            if (logPanel    != null) logPanel.append(msg);
             if (headerPanel != null) headerPanel.updateStatus(service.isRunning());
         }));
 
@@ -40,32 +39,37 @@ public class AppWindow extends JFrame {
     private void buildUI() {
         setLayout(new BorderLayout());
 
-        // ── Header ────────────────────────────────────────────────────────
-        headerPanel = new HeaderPanel(service, this);
+        headerPanel     = new HeaderPanel(service, this);
         add(headerPanel, BorderLayout.NORTH);
 
-        // ── Tabs principais ───────────────────────────────────────────────
         tabs = new JTabbedPane();
 
-        DashboardPanel dashboard = new DashboardPanel(service);
-        logPanel     = new LogPanel();
-        configPanel  = new ConfigPanel(service);
-        sourcesPanel = new SourcesPanel(service, this);
+        DashboardPanel   dashboard  = new DashboardPanel(service);
+        logPanel         = new LogPanel();
+        configPanel      = new ConfigPanel(service);
+        sourcesPanel     = new SourcesPanel(service, this);
+        metricsPanel     = new MetricsPanel(service);
+        recordingsPanel  = new RecordingsPanel(service);
 
-        // ── NOVA ABA: Assistente de Configuracao ──────────────────────────
         ConfigWizardPanel wizardPanel = new ConfigWizardPanel(service, configPanel);
-        metricsPanel = new com.mediamtx.manager.panels.MetricsPanel(service);
 
-        tabs.addTab("\uD83C\uDFE0  Dashboard",    null, dashboard,    "Visao geral e instrucoes");
-        tabs.addTab("\uD83D\uDCF9  Sources",       null, sourcesPanel, "Fontes de retransmissao ativas");
-        tabs.addTab("\u2699  Assistente",          null, wizardPanel,  "Configurar sem editar YAML manualmente");
-        tabs.addTab("\uD83D\uDCCA  M\u00e9tricas",  null, metricsPanel, "Streams ativos e leitores em tempo real");
-        tabs.addTab("\uD83D\uDCC4  Config YAML",   null, configPanel,  "Editar o mediamtx.yml diretamente");
-        tabs.addTab("\uD83D\uDDCE  Log",           null, logPanel,     "Saida do processo MediaMTX");
+        wizardPanel.setApiPortListener(port -> {
+            sourcesPanel.setApiPort(port);
+            metricsPanel.setApiPort(port);
+            recordingsPanel.setApiPort(port);
+        });
 
-        // Destaques nas abas
+        tabs.addTab("🏠  Dashboard",    null, dashboard,       "Visao geral e instrucoes");
+        tabs.addTab("📹  Sources",       null, sourcesPanel,    "Fontes de retransmissao ativas");
+        tabs.addTab("⚙  Assistente",          null, wizardPanel,     "Configurar sem editar YAML manualmente");
+        tabs.addTab("📊  Metricas",      null, metricsPanel,    "Streams ativos e leitores em tempo real");
+        tabs.addTab("📀  Gravacoes",     null, recordingsPanel, "Gravacoes locais via API REST");
+        tabs.addTab("📄  Config YAML",   null, configPanel,     "Editar o mediamtx.yml diretamente");
+        tabs.addTab("🗎  Log",           null, logPanel,        "Saida do processo MediaMTX");
+
         tabs.setForegroundAt(2, Theme.SUCCESS);
         tabs.setForegroundAt(3, Theme.ACCENT);
+        tabs.setForegroundAt(4, Theme.ORANGE);
 
         add(tabs, BorderLayout.CENTER);
     }
@@ -73,21 +77,16 @@ public class AppWindow extends JFrame {
     private JMenuBar buildMenuBar() {
         JMenuBar mb = new JMenuBar();
 
-        // ── Menu Arquivo ──────────────────────────────────────────────────
         JMenu mFile = new JMenu("Arquivo");
         JMenuItem miOpenBin = new JMenuItem("Abrir binario...");
         JMenuItem miOpenCfg = new JMenuItem("Abrir config YAML...");
         JMenuItem miExit    = new JMenuItem("Sair");
         miOpenBin.addActionListener(e -> service.chooseBinary(this));
         miOpenCfg.addActionListener(e -> service.chooseConfig(this));
-        miExit.addActionListener(e -> {
-            service.stop();
-            System.exit(0);
-        });
+        miExit.addActionListener(e -> { service.stop(); System.exit(0); });
         mFile.add(miOpenBin); mFile.add(miOpenCfg);
         mFile.addSeparator(); mFile.add(miExit);
 
-        // ── Menu Servidor ─────────────────────────────────────────────────
         JMenu mServer = new JMenu("Servidor");
         JMenuItem miStart   = new JMenuItem("Iniciar");
         JMenuItem miStop    = new JMenuItem("Parar");
@@ -97,19 +96,15 @@ public class AppWindow extends JFrame {
         miRestart.addActionListener(e -> service.restart());
         mServer.add(miStart); mServer.add(miStop); mServer.add(miRestart);
 
-        // ── Menu Ajuda ────────────────────────────────────────────────────
         JMenu mHelp = new JMenu("Ajuda");
-        JMenuItem miDocs    = new JMenuItem("Documentacao MediaMTX");
-        JMenuItem miGithub  = new JMenuItem("GitHub do projeto");
-        JMenuItem miAbout   = new JMenuItem("Sobre");
-        miDocs.addActionListener(e ->
-            openBrowser("https://github.com/bluenviron/mediamtx"));
-        miGithub.addActionListener(e ->
-            openBrowser("https://github.com/luanscps/MediaMTX-GUI"));
+        JMenuItem miDocs   = new JMenuItem("Documentacao MediaMTX");
+        JMenuItem miGithub = new JMenuItem("GitHub do projeto");
+        JMenuItem miAbout  = new JMenuItem("Sobre");
+        miDocs.addActionListener(e -> openBrowser("https://github.com/bluenviron/mediamtx"));
+        miGithub.addActionListener(e -> openBrowser("https://github.com/luanscps/MediaMTX-GUI"));
         miAbout.addActionListener(e ->
             JOptionPane.showMessageDialog(this,
-                "MediaMTX GUI v1.0.0\nDesenvolvido por Luan\n" +
-                "https://luanscps.github.io/\n\n",
+                "MediaMTX GUI v1.2.0\nDesenvolvido por Luan\nhttps://luanscps.github.io/",
                 "Sobre", JOptionPane.INFORMATION_MESSAGE));
         mHelp.add(miDocs); mHelp.add(miGithub);
         mHelp.addSeparator(); mHelp.add(miAbout);
@@ -118,10 +113,9 @@ public class AppWindow extends JFrame {
         return mb;
     }
 
-    /** Insere bloco YAML no editor e navega para a aba Config YAML */
     public void insertYamlAndNavigate(String block) {
         configPanel.appendYaml(block);
-        tabs.setSelectedIndex(4); // aba Config YAML
+        tabs.setSelectedIndex(5);
     }
 
     public static void openBrowser(String url) {
@@ -131,8 +125,9 @@ public class AppWindow extends JFrame {
 
     @Override
     public void dispose() {
-        if (sourcesPanel != null) sourcesPanel.stopRefresh();
-        if (metricsPanel != null) metricsPanel.stopRefresh();
+        if (sourcesPanel    != null) sourcesPanel.stopRefresh();
+        if (metricsPanel    != null) metricsPanel.stopRefresh();
+        if (recordingsPanel != null) recordingsPanel.stopRefresh();
         service.stop();
         super.dispose();
     }

@@ -1,8 +1,5 @@
 package com.mediamtx.manager.service;
 
-import com.mediamtx.manager.service.YamlPresetService;
-import com.mediamtx.manager.service.YamlPresetService.Config;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -15,6 +12,7 @@ public class MediaMTXService {
     private String   binaryPath = "./mediamtx";
     private String   configPath = "./mediamtx.yml";
     private Consumer<String> logConsumer;
+    private Consumer<String> versionConsumer;
 
     public void start() {
         if (isRunning()) { log("[AVISO] Servidor ja esta em execucao."); return; }
@@ -56,12 +54,47 @@ public class MediaMTXService {
         log("[INFO] Processo encerrado.");
     }
 
+    public void detectVersion() {
+        if (binaryPath == null || binaryPath.isEmpty()) return;
+        new Thread(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder(binaryPath, "--version");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(p.getInputStream()))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String trimmed = line.trim();
+                        if (!trimmed.isEmpty()) {
+                            final String version = parseVersion(trimmed);
+                            if (versionConsumer != null) {
+                                SwingUtilities.invokeLater(() -> versionConsumer.accept(version));
+                            }
+                            break;
+                        }
+                    }
+                }
+                p.waitFor();
+            } catch (Exception e) {
+                log("[AVISO] Nao foi possivel detectar versao: " + e.getMessage());
+            }
+        }, "mtx-version").start();
+    }
+
+    private String parseVersion(String raw) {
+        java.util.regex.Matcher m =
+            java.util.regex.Pattern.compile("v?(\\d+\\.\\d+[\\.\\d]*)").matcher(raw);
+        return m.find() ? "v" + m.group(1) : raw;
+    }
+
     public void chooseBinary(Component parent) {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Selecione o binario mediamtx");
         if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
             binaryPath = fc.getSelectedFile().getAbsolutePath();
             log("[CONFIG] Binario: " + binaryPath);
+            detectVersion();
         }
     }
 
@@ -86,24 +119,20 @@ public class MediaMTXService {
         } catch (IOException e) {
             log("[ERRO] Falha ao salvar YAML: " + e.getMessage());
             JOptionPane.showMessageDialog(null,
-                "Nao foi possivel salvar o arquivo:\n" + configPath +
-                "\n\n" + e.getMessage(),
+                "Nao foi possivel salvar o arquivo:\n" + configPath + "\n\n" + e.getMessage(),
                 "Erro ao salvar", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    public String getBinaryPath() { return binaryPath; }
+    public String getBinaryPath()  { return binaryPath; }
     public String getConfigPath()  { return configPath; }
     public void   setBinaryPath(String p) { this.binaryPath = p; }
     public void   setConfigPath(String p) { this.configPath = p; }
-    public void   setLogConsumer(Consumer<String> c) { this.logConsumer = c; }
+    public void   setLogConsumer(Consumer<String> c)     { this.logConsumer = c; }
+    public void   setVersionConsumer(Consumer<String> c) { this.versionConsumer = c; }
     private void  log(String msg) { if (logConsumer != null) logConsumer.accept(msg); }
 
-    /**
-     * YAML padrao completo e valido para o MediaMTX.
-     * Gerado pelo YamlPresetService com config padrao.
-     */
     public String defaultYaml() {
-        return YamlPresetService.generate(new Config());
+        return YamlPresetService.generate(new YamlPresetService.Config());
     }
 }
