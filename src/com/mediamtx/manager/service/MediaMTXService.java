@@ -54,6 +54,10 @@ public class MediaMTXService {
         log("[INFO] Processo encerrado.");
     }
 
+    /**
+     * Detecta a versao do binario executando: mediamtx --version
+     * Resultado e enviado de forma assincrona ao versionConsumer (ex: HeaderPanel).
+     */
     public void detectVersion() {
         if (binaryPath == null || binaryPath.isEmpty()) return;
         new Thread(() -> {
@@ -82,6 +86,7 @@ public class MediaMTXService {
         }, "mtx-version").start();
     }
 
+    /** Extrai "v1.9.1" de strings como "mediamtx v1.9.1" ou simplesmente "1.9.1" */
     private String parseVersion(String raw) {
         java.util.regex.Matcher m =
             java.util.regex.Pattern.compile("v?(\\d+\\.\\d+[\\.\\d]*)").matcher(raw);
@@ -119,7 +124,8 @@ public class MediaMTXService {
         } catch (IOException e) {
             log("[ERRO] Falha ao salvar YAML: " + e.getMessage());
             JOptionPane.showMessageDialog(null,
-                "Nao foi possivel salvar o arquivo:\n" + configPath + "\n\n" + e.getMessage(),
+                "Nao foi possivel salvar o arquivo:\n" + configPath +
+                "\n\n" + e.getMessage(),
                 "Erro ao salvar", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -128,7 +134,7 @@ public class MediaMTXService {
     public String getConfigPath()  { return configPath; }
     public void   setBinaryPath(String p) { this.binaryPath = p; }
     public void   setConfigPath(String p) { this.configPath = p; }
-    public void   setLogConsumer(Consumer<String> c)     { this.logConsumer = c; }
+    public void   setLogConsumer(Consumer<String> c) { this.logConsumer = c; }
     public void   setVersionConsumer(Consumer<String> c) { this.versionConsumer = c; }
     private void  log(String msg) { if (logConsumer != null) logConsumer.accept(msg); }
 

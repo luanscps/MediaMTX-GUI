@@ -1,0 +1,167 @@
+# MediaMTX - Gerado pelo MediaMTX GUI
+# Documentacao: https://github.com/bluenviron/mediamtx
+
+###############################################
+# Global settings
+
+logLevel: debug
+logDestinations: [stdout]
+logStructured: false
+readTimeout: 10s
+writeTimeout: 10s
+writeQueueSize: 512
+udpMaxPayloadSize: 1452
+
+###############################################
+# Authentication
+
+authMethod: internal
+authInternalUsers:
+- user: any
+  pass:
+  ips: []
+  permissions:
+  - action: publish
+    path:
+  - action: read
+    path:
+  - action: playback
+    path:
+- user: any
+  pass:
+  ips: ['127.0.0.1', '::1']
+  permissions:
+  - action: api
+  - action: metrics
+  - action: pprof
+
+###############################################
+# Control API
+
+api: true
+apiAddress: :9997
+apiEncryption: false
+apiAllowOrigins: ['*']
+apiTrustedProxies: []
+
+###############################################
+# Metrics
+
+metrics: false
+metricsAddress: :9998
+metricsEncryption: false
+metricsAllowOrigins: ['*']
+metricsTrustedProxies: []
+
+###############################################
+# Playback server
+
+playback: false
+playbackAddress: :9996
+playbackEncryption: false
+playbackAllowOrigins: ['*']
+playbackTrustedProxies: []
+
+###############################################
+# RTSP server
+
+rtsp: true
+rtspTransports: [tcp, udp]
+rtspEncryption: "no"
+rtspAddress: :8554
+rtspsAddress: :8322
+rtpAddress: :8000
+rtcpAddress: :8001
+rtspAuthMethods: [basic]
+
+###############################################
+# RTMP server
+
+rtmp: true
+rtmpEncryption: "no"
+rtmpAddress: :1935
+rtmpsAddress: :1936
+
+###############################################
+# HLS server
+
+hls: true
+hlsAddress: :8888
+hlsEncryption: false
+hlsAllowOrigins: ['*']
+hlsTrustedProxies: []
+hlsAlwaysRemux: false
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsSegmentMaxSize: 50M
+hlsDirectory: ''
+hlsMuxerCloseAfter: 60s
+
+###############################################
+# WebRTC server
+
+webrtc: true
+webrtcAddress: :8889
+webrtcEncryption: false
+webrtcAllowOrigins: ['*']
+webrtcTrustedProxies: []
+webrtcLocalUDPAddress: :8189
+webrtcLocalTCPAddress: ''
+webrtcIPsFromInterfaces: true
+webrtcIPsFromInterfacesList: []
+webrtcAdditionalHosts: []
+webrtcICEServers2: []
+webrtcSTUNGatherTimeout: 5s
+webrtcHandshakeTimeout: 10s
+webrtcTrackGatherTimeout: 2s
+
+###############################################
+# SRT server
+
+srt: true
+srtAddress: :8890
+
+###############################################
+# Default path settings
+
+pathDefaults:
+  source: publisher
+  sourceOnDemand: false
+  sourceOnDemandStartTimeout: 10s
+  sourceOnDemandCloseAfter: 10s
+  maxReaders: 0
+  overridePublisher: true
+  useAbsoluteTimestamp: false
+
+  record: false
+  recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+  recordFormat: fmp4
+  recordPartDuration: 1s
+  recordMaxPartSize: 50M
+  recordSegmentDuration: 1h
+  recordDeleteAfter: 1d
+
+  runOnInit:
+  runOnInitRestart: false
+  runOnDemand:
+  runOnDemandRestart: false
+  runOnDemandStartTimeout: 10s
+  runOnDemandCloseAfter: 10s
+  runOnReady:
+  runOnReadyRestart: false
+  runOnRead:
+  runOnReadRestart: false
+  runOnNotReady:
+  runOnUnread:
+  runOnUnDemand:
+  runOnRecordSegmentCreate:
+  runOnRecordSegmentComplete:
+
+###############################################
+# Path settings
+
+paths:
+  all_others:
+  # Adicione paths especificos abaixo ou use a aba Sources

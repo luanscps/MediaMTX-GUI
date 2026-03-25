@@ -25,8 +25,7 @@ public class RecordingsPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel lblTotal;
     private JLabel lblSize;
-    private final Timer refreshTimer;
-    private JTable table;
+    private Timer refreshTimer;
 
     private static final String[] COLS = {
         "Path", "Arquivo", "Inicio", "Duracao", "Tamanho"
@@ -38,21 +37,22 @@ public class RecordingsPanel extends JPanel {
         setBackground(Theme.BG);
         setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        add(buildHeader(), BorderLayout.NORTH);
-        add(buildTable(),  BorderLayout.CENTER);
-        add(buildFooter(), BorderLayout.SOUTH);
+        add(buildHeader(),  BorderLayout.NORTH);
+        add(buildTable(),   BorderLayout.CENTER);
+        add(buildFooter(),  BorderLayout.SOUTH);
 
         refreshTimer = new Timer(10000, e -> refresh());
         refreshTimer.start();
         refresh();
     }
 
+    // ── Header ───────────────────────────────────────────────────────────────
     private JPanel buildHeader() {
         JPanel bar = new JPanel(new BorderLayout());
         bar.setBackground(Theme.BG);
         bar.setBorder(new EmptyBorder(0, 0, 12, 0));
 
-        JLabel title = new JLabel("📀  Gravacoes Locais");
+        JLabel title = new JLabel("\uD83D\uDCC0  Gravacoes Locais");
         title.setFont(Theme.FONT_TITLE);
         title.setForeground(Theme.ORANGE);
         bar.add(title, BorderLayout.WEST);
@@ -77,12 +77,15 @@ public class RecordingsPanel extends JPanel {
         return bar;
     }
 
+    // ── Cards resumo ─────────────────────────────────────────────────────────
     private JPanel buildSummaryCards() {
         JPanel cards = new JPanel(new GridLayout(1, 2, 12, 0));
         cards.setBackground(Theme.BG);
         cards.setBorder(new EmptyBorder(0, 0, 12, 0));
-        lblTotal = buildCard(cards, "Total de Gravacoes", "0",    Theme.ORANGE);
+
+        lblTotal = buildCard(cards, "Total de Gravacoes", "0", Theme.ORANGE);
         lblSize  = buildCard(cards, "Tamanho Total",      "0 MB", new Color(124, 58, 237));
+
         return cards;
     }
 
@@ -92,20 +95,24 @@ public class RecordingsPanel extends JPanel {
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 4, 0, 0, accent),
             BorderFactory.createLineBorder(Theme.BORDER)));
+
         JLabel t = new JLabel("  " + title);
         t.setFont(Theme.FONT_SMALL);
         t.setForeground(Theme.TEXT_DIM);
         t.setBorder(new EmptyBorder(8, 4, 2, 0));
+
         JLabel v = new JLabel("  " + value);
         v.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
         v.setForeground(accent);
         v.setBorder(new EmptyBorder(0, 0, 8, 0));
+
         card.add(t, BorderLayout.NORTH);
         card.add(v, BorderLayout.CENTER);
         parent.add(card);
         return v;
     }
 
+    // ── Tabela ───────────────────────────────────────────────────────────────
     private JPanel buildTable() {
         JPanel wrap = new JPanel(new BorderLayout(0, 8));
         wrap.setBackground(Theme.BG);
@@ -116,7 +123,7 @@ public class RecordingsPanel extends JPanel {
             public boolean isCellEditable(int row, int col) { return false; }
         };
 
-        table = new JTable(tableModel);
+        JTable table = new JTable(tableModel);
         table.setFont(Theme.FONT_MEDIUM);
         table.setForeground(Theme.TEXT);
         table.setBackground(Theme.BG_CARD);
@@ -134,9 +141,9 @@ public class RecordingsPanel extends JPanel {
                     JTable t, Object value, boolean sel, boolean foc, int row, int col) {
                 Component c = super.getTableCellRendererComponent(t, value, sel, foc, row, col);
                 String val = value == null ? "" : value.toString();
-                if (col == 0)      setForeground(Theme.ORANGE);
+                if (col == 0) setForeground(Theme.ORANGE);
                 else if (col == 4) setForeground(new Color(124, 58, 237));
-                else               setForeground(Theme.TEXT);
+                else setForeground(Theme.TEXT);
                 setText(val);
                 setBackground(sel ? new Color(245, 158, 11, 40)
                     : (row % 2 == 0 ? Theme.BG_CARD : Theme.BG));
@@ -155,32 +162,37 @@ public class RecordingsPanel extends JPanel {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER_MED));
         scroll.getViewport().setBackground(Theme.BG_CARD);
+
         wrap.add(scroll, BorderLayout.CENTER);
         return wrap;
     }
 
+    // ── Footer ───────────────────────────────────────────────────────────────
     private JPanel buildFooter() {
         JPanel f = new JPanel(new BorderLayout());
         f.setBackground(new Color(50, 48, 65));
         f.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.BORDER),
             new EmptyBorder(8, 12, 8, 12)));
+
         JLabel info = new JLabel(
-            "<html>Atualizacao automatica a cada 10s  &middot;  " +
-            "Selecione uma gravacao e clique em <b>Abrir Pasta</b> para abrir no explorador</html>");
+            "<html><span style='color:#bbbbbb'>Atualizacao automatica a cada 10s via API REST &nbsp;&middot;&nbsp; " +
+            "Selecione uma gravacao e clique em </span>" +
+            "<span style='color:#f97316'><b>Abrir Pasta</b></span>" +
+            "<span style='color:#bbbbbb'> para abrir no explorador de arquivos</span></html>");
         info.setFont(Theme.FONT_SMALL);
-        info.setForeground(Theme.TEXT_DIM);
         f.add(info, BorderLayout.CENTER);
         f.setPreferredSize(new Dimension(0, 50));
         return f;
     }
 
+    // ── Refresh ──────────────────────────────────────────────────────────────
     private void refresh() {
         if (!service.isRunning()) {
             SwingUtilities.invokeLater(() -> {
                 tableModel.setRowCount(0);
-                lblTotal.setText("  -");
-                lblSize.setText("  -");
+                if (lblTotal != null) lblTotal.setText("  -");
+                if (lblSize  != null) lblSize.setText("  -");
                 statusLabel.setText("servidor parado");
                 statusLabel.setForeground(new Color(239, 68, 68));
             });
@@ -190,13 +202,17 @@ public class RecordingsPanel extends JPanel {
             try {
                 String json = httpGet("http://localhost:" + apiPort + "/v3/recordings/list");
                 List<Object[]> rows = parseRecordings(json);
-                long totalBytes = rows.stream().mapToLong(r -> (long) r[5]).sum();
+                long totalBytes = rows.stream()
+                    .mapToLong(r -> (long) r[5])
+                    .sum();
+
                 SwingUtilities.invokeLater(() -> {
                     tableModel.setRowCount(0);
-                    for (Object[] row : rows)
+                    for (Object[] row : rows) {
                         tableModel.addRow(new Object[]{ row[0], row[1], row[2], row[3], row[4] });
-                    lblTotal.setText("  " + rows.size());
-                    lblSize.setText("  " + formatSize(totalBytes));
+                    }
+                    if (lblTotal != null) lblTotal.setText("  " + rows.size());
+                    if (lblSize  != null) lblSize.setText("  " + formatSize(totalBytes));
                     statusLabel.setText("atualizado - " + rows.size() + " gravacao(oes)");
                     statusLabel.setForeground(new Color(34, 197, 94));
                 });
@@ -209,7 +225,31 @@ public class RecordingsPanel extends JPanel {
         }, "recordings-refresh").start();
     }
 
+    // ── Abrir pasta da gravacao selecionada ──────────────────────────────────
+    private JTable getTable() {
+        // acessa a tabela pelo componente da scroll pane
+        for (Component c : getComponents()) {
+            if (c instanceof JPanel) {
+                for (Component inner : ((JPanel) c).getComponents()) {
+                    if (inner instanceof JScrollPane) {
+                        return (JTable) ((JScrollPane) inner).getViewport().getView();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private void openSelectedFolder() {
+        // tenta encontrar a tabela e abrir a pasta do arquivo selecionado
+        Component center = ((BorderLayout) getLayout()).getLayoutComponent(BorderLayout.CENTER);
+        if (!(center instanceof JPanel)) return;
+        JScrollPane sp = null;
+        for (Component c : ((JPanel) center).getComponents()) {
+            if (c instanceof JScrollPane) { sp = (JScrollPane) c; break; }
+        }
+        if (sp == null) return;
+        JTable table = (JTable) sp.getViewport().getView();
         int row = table.getSelectedRow();
         if (row < 0) {
             JOptionPane.showMessageDialog(this,
@@ -234,6 +274,7 @@ public class RecordingsPanel extends JPanel {
         }
     }
 
+    // ── HTTP GET ─────────────────────────────────────────────────────────────
     private String httpGet(String urlStr) throws Exception {
         URI uri = URI.create(urlStr);
         HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
@@ -250,6 +291,7 @@ public class RecordingsPanel extends JPanel {
         }
     }
 
+    // ── Parser JSON manual ───────────────────────────────────────────────────
     private List<Object[]> parseRecordings(String json) {
         List<Object[]> rows = new ArrayList<>();
         int itemsIdx = json.indexOf("\"items\"");
@@ -258,8 +300,10 @@ public class RecordingsPanel extends JPanel {
         int arrEnd   = json.lastIndexOf(']');
         if (arrStart < 0 || arrEnd < 0) return rows;
         String arr = json.substring(arrStart + 1, arrEnd);
+
         for (String obj : splitObjects(arr)) {
             String pathName = extractField(obj, "name");
+            // segments dentro de cada recording
             int segIdx = obj.indexOf("\"segments\"");
             if (segIdx < 0) continue;
             int segArrStart = obj.indexOf('[', segIdx);
@@ -271,8 +315,9 @@ public class RecordingsPanel extends JPanel {
                 String start    = extractField(seg, "start");
                 String dur      = extractField(seg, "duration");
                 long   size     = extractLong(seg, "size");
+                // formata
                 start = start.length() > 19 ? start.substring(0, 19).replace("T", " ") : start;
-                if (dur.isEmpty()) dur = "-";
+                dur   = dur.isEmpty() ? "-" : dur;
                 rows.add(new Object[]{ pathName, filePath, start, dur, formatSize(size), size });
             }
         }
@@ -314,23 +359,25 @@ public class RecordingsPanel extends JPanel {
         for (int j = st; j < obj.length(); j++) {
             char ch = obj.charAt(j);
             if (Character.isDigit(ch)) sb.append(ch);
-            else if (sb.length() > 0)  break;
+            else if (sb.length() > 0) break;
         }
         try { return Long.parseLong(sb.toString()); }
         catch (NumberFormatException e) { return 0; }
     }
 
     private String formatSize(long bytes) {
-        if (bytes <= 0)                   return "0 B";
-        if (bytes < 1024)                 return bytes + " B";
-        if (bytes < 1024 * 1024)          return String.format("%.1f KB", bytes / 1024.0);
-        if (bytes < 1024L * 1024 * 1024)  return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        if (bytes <= 0)          return "0 B";
+        if (bytes < 1024)        return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024L * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
         return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
     }
 
     public void setApiPort(int port) { this.apiPort = port; }
 
-    public void stopRefresh() { if (refreshTimer != null) refreshTimer.stop(); }
+    public void stopRefresh() {
+        if (refreshTimer != null) refreshTimer.stop();
+    }
 
     private JButton makeBtn(String text, Color bg) {
         JButton b = new JButton(text);

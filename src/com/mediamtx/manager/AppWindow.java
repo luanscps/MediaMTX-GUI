@@ -53,19 +53,20 @@ public class AppWindow extends JFrame {
 
         ConfigWizardPanel wizardPanel = new ConfigWizardPanel(service, configPanel);
 
+        // Sincroniza porta da API: Wizard → Sources + Metrics + Recordings
         wizardPanel.setApiPortListener(port -> {
             sourcesPanel.setApiPort(port);
             metricsPanel.setApiPort(port);
             recordingsPanel.setApiPort(port);
         });
 
-        tabs.addTab("🏠  Dashboard",    null, dashboard,       "Visao geral e instrucoes");
-        tabs.addTab("📹  Sources",       null, sourcesPanel,    "Fontes de retransmissao ativas");
-        tabs.addTab("⚙  Assistente",          null, wizardPanel,     "Configurar sem editar YAML manualmente");
-        tabs.addTab("📊  Metricas",      null, metricsPanel,    "Streams ativos e leitores em tempo real");
-        tabs.addTab("📀  Gravacoes",     null, recordingsPanel, "Gravacoes locais via API REST");
-        tabs.addTab("📄  Config YAML",   null, configPanel,     "Editar o mediamtx.yml diretamente");
-        tabs.addTab("🗎  Log",           null, logPanel,        "Saida do processo MediaMTX");
+        tabs.addTab("\uD83C\uDFE0  Dashboard",    null, dashboard,       "Visao geral e instrucoes");
+        tabs.addTab("\uD83D\uDCF9  Sources",       null, sourcesPanel,    "Fontes de retransmissao ativas");
+        tabs.addTab("\u2699  Assistente",          null, wizardPanel,     "Configurar sem editar YAML manualmente");
+        tabs.addTab("\uD83D\uDCCA  Metricas",      null, metricsPanel,    "Streams ativos e leitores em tempo real");
+        tabs.addTab("\uD83D\uDCC0  Gravacoes",     null, recordingsPanel, "Gravacoes locais via API REST");
+        tabs.addTab("\uD83D\uDCC4  Config YAML",   null, configPanel,     "Editar o mediamtx.yml diretamente");
+        tabs.addTab("\uD83D\uDDCE  Log",           null, logPanel,        "Saida do processo MediaMTX");
 
         tabs.setForegroundAt(2, Theme.SUCCESS);
         tabs.setForegroundAt(3, Theme.ACCENT);
@@ -104,7 +105,8 @@ public class AppWindow extends JFrame {
         miGithub.addActionListener(e -> openBrowser("https://github.com/luanscps/MediaMTX-GUI"));
         miAbout.addActionListener(e ->
             JOptionPane.showMessageDialog(this,
-                "MediaMTX GUI v1.2.0\nDesenvolvido por Luan\nhttps://luanscps.github.io/",
+                "MediaMTX GUI v1.2.0\nDesenvolvido por Luan\n" +
+                "https://luanscps.github.io/\n\n",
                 "Sobre", JOptionPane.INFORMATION_MESSAGE));
         mHelp.add(miDocs); mHelp.add(miGithub);
         mHelp.addSeparator(); mHelp.add(miAbout);
@@ -113,9 +115,10 @@ public class AppWindow extends JFrame {
         return mb;
     }
 
+    /** Insere bloco YAML no editor e navega para a aba Config YAML */
     public void insertYamlAndNavigate(String block) {
         configPanel.appendYaml(block);
-        tabs.setSelectedIndex(5);
+        tabs.setSelectedIndex(5); // Config YAML agora esta no indice 5
     }
 
     public static void openBrowser(String url) {

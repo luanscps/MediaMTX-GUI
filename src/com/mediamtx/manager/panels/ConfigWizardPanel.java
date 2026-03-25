@@ -15,6 +15,13 @@ public class ConfigWizardPanel extends JPanel {
     private final MediaMTXService service;
     private final ConfigPanel     configPanel;
 
+    // Listener para notificar mudança de porta da API
+    public interface ApiPortListener {
+        void onApiPortChanged(int port);
+    }
+    private ApiPortListener apiPortListener;
+    public void setApiPortListener(ApiPortListener l) { this.apiPortListener = l; }
+
     // Geral
     private JComboBox<LogLevel> cbLog;
     private JCheckBox  chkLogFile;
@@ -50,7 +57,8 @@ public class ConfigWizardPanel extends JPanel {
 
     // Auth
     private JComboBox<AuthMode> cbAuth;
-    private JTextField tfUser, tfPass, tfAuthHTTP, tfJwtJWKS, tfJwtKey;
+    private JTextField    tfUser, tfAuthHTTP, tfJwtJWKS, tfJwtKey;
+    private JPasswordField tfPass;
     private JPanel pnlAuthSimples, pnlAuthHTTP, pnlAuthJWT;
 
     // Gravacao
@@ -67,8 +75,10 @@ public class ConfigWizardPanel extends JPanel {
     private JCheckBox  chkSourceOnDemand, chkOverridePublisher, chkAbsTs;
     private JSpinner   spMaxReaders;
     private JTextField tfRunOnInit, tfRunOnDemand, tfRunOnReady, tfRunOnRead;
+    private JTextField tfRunOnConnect, tfRunOnDisconnect;
     private JCheckBox  chkRunOnInitRestart, chkRunOnDemandRestart,
-                       chkRunOnReadyRestart, chkRunOnReadRestart;
+                       chkRunOnReadyRestart, chkRunOnReadRestart,
+                       chkRunOnConnectRestart, chkRunOnDisconnectRestart;
 
     public ConfigWizardPanel(MediaMTXService service, ConfigPanel configPanel) {
         this.service     = service;
@@ -83,7 +93,11 @@ public class ConfigWizardPanel extends JPanel {
         add(buildFooter(), "growx, h 52!");
     }
 
-    // ── Form container ────────────────────────────────────────────────────
+    public int getApiPort() {
+        try { return Integer.parseInt(tfPortApi.getText().trim()); }
+        catch (NumberFormatException e) { return 9997; }
+    }
+
     private JPanel buildForm() {
         JPanel p = new JPanel(new MigLayout("insets 20, gap 0 14", "[grow]", "[]"));
         p.setBackground(Theme.BG);
@@ -101,8 +115,6 @@ public class ConfigWizardPanel extends JPanel {
         return p;
     }
 
-    // ── Utilitario de card ────────────────────────────────────────────────
-    // Colunas MigLayout validas: usar px ou % — NUNCA "auto"
     private static final String COL4 = "[160px][grow][160px][grow]";
     private static final String COL2 = "[160px][grow]";
 
@@ -130,7 +142,6 @@ public class ConfigWizardPanel extends JPanel {
 
     private JPanel body(JPanel card) { return (JPanel) card.getComponent(1); }
 
-    // ── Geral ─────────────────────────────────────────────────────────────
     private JPanel buildGeralCard() {
         JPanel card = makeCard("Configuracoes Gerais", Theme.TEXT);
         JPanel b = body(card);
@@ -166,12 +177,9 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── Protocolos ────────────────────────────────────────────────────────
     private JPanel buildProtocolosCard() {
         JPanel card = makeCard("Protocolos — Habilitar / Porta", Theme.ACCENT);
         JPanel b = body(card);
-        // Layout 4 colunas: [checkbox][porta][checkbox][porta]
-        // Sem "auto" — usando px fixo
         b.setLayout(new MigLayout("insets 12 16 14 16, gap 10 8",
                                    "[180px][80px][180px][80px]", ""));
 
@@ -189,6 +197,12 @@ public class ConfigWizardPanel extends JPanel {
         tfPortSrt    = tf("8890");
         tfPortApi    = tf("9997");
 
+        // Notifica mudança de porta da API
+        tfPortApi.addActionListener(e -> notifyApiPort());
+        tfPortApi.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent e) { notifyApiPort(); }
+        });
+
         Color[] colors = {Theme.ACCENT, Theme.ACCENT2, Theme.WARNING,
                           Theme.SUCCESS, Theme.PURPLE, new Color(71,85,105)};
         JCheckBox[] cbs = {chkRtsp, chkRtmp, chkHls, chkWebrtc, chkSrt, chkApi};
@@ -203,7 +217,15 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── RTSP avancado ─────────────────────────────────────────────────────
+    private void notifyApiPort() {
+        if (apiPortListener != null) {
+            try {
+                int port = Integer.parseInt(tfPortApi.getText().trim());
+                apiPortListener.onApiPortChanged(port);
+            } catch (NumberFormatException ignored) {}
+        }
+    }
+
     private JPanel buildRtspCard() {
         JPanel card = makeCard("RTSP — Configuracoes Avancadas", Theme.ACCENT);
         JPanel b = body(card);
@@ -231,7 +253,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── RTMP avancado ─────────────────────────────────────────────────────
     private JPanel buildRtmpCard() {
         JPanel card = makeCard("RTMP — Configuracoes Avancadas", Theme.ACCENT2);
         JPanel b = body(card);
@@ -246,7 +267,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── HLS avancado ──────────────────────────────────────────────────────
     private JPanel buildHlsCard() {
         JPanel card = makeCard("HLS — Configuracoes Avancadas", Theme.WARNING);
         JPanel b = body(card);
@@ -275,7 +295,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── WebRTC avancado ───────────────────────────────────────────────────
     private JPanel buildWebrtcCard() {
         JPanel card = makeCard("WebRTC — Configuracoes Avancadas", Theme.SUCCESS);
         JPanel b = body(card);
@@ -298,7 +317,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── Servicos extras ───────────────────────────────────────────────────
     private JPanel buildServicosCard() {
         JPanel card = makeCard("Servicos Extras (Metrics / Playback)", new Color(71,85,105));
         JPanel b = body(card);
@@ -318,7 +336,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── Auth ──────────────────────────────────────────────────────────────
     private JPanel buildAuthCard() {
         JPanel card = makeCard("Autenticacao", Theme.DANGER);
         JPanel b = body(card);
@@ -327,14 +344,38 @@ public class ConfigWizardPanel extends JPanel {
         cbAuth = new JComboBox<>(AuthMode.values());
         b.add(cbAuth, "span 3, growx, wrap");
 
-        // Painel usuario+senha
+        // Painel usuario+senha (com JPasswordField + toggle)
         pnlAuthSimples = subPanel(b, "span 4, growx, wrap");
         pnlAuthSimples.add(lbl("Usuario:"));
         tfUser = tf("admin");
         pnlAuthSimples.add(tfUser, "growx");
+
         pnlAuthSimples.add(lbl("Senha:"));
-        tfPass = tf("senha123");
-        pnlAuthSimples.add(tfPass, "growx, wrap");
+        JPanel passRow = new JPanel(new BorderLayout(4, 0));
+        passRow.setOpaque(false);
+        tfPass = new JPasswordField("senha123");
+        tfPass.setFont(Theme.FONT_MEDIUM);
+        JButton btnShow = new JButton("👁");
+        btnShow.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        btnShow.setFocusPainted(false);
+        btnShow.setBorderPainted(false);
+        btnShow.setBackground(Theme.BG_CARD);
+        btnShow.setForeground(Theme.TEXT_DIM);
+        btnShow.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnShow.setPreferredSize(new Dimension(36, 28));
+        btnShow.addActionListener(e -> {
+            if (tfPass.getEchoChar() == 0) {
+                tfPass.setEchoChar('●');
+                btnShow.setText("👁");
+            } else {
+                tfPass.setEchoChar((char) 0);
+                btnShow.setText("🙈");
+            }
+        });
+        tfPass.setEchoChar('●');
+        passRow.add(tfPass, BorderLayout.CENTER);
+        passRow.add(btnShow, BorderLayout.EAST);
+        pnlAuthSimples.add(passRow, "growx, wrap");
 
         // Painel HTTP externo
         pnlAuthHTTP = subPanel(b, "span 4, growx, wrap");
@@ -369,7 +410,6 @@ public class ConfigWizardPanel extends JPanel {
         if (pnlAuthJWT     != null) pnlAuthJWT.setVisible(false);
     }
 
-    // ── Gravacao ──────────────────────────────────────────────────────────
     private JPanel buildGravacaoCard() {
         JPanel card = makeCard("Gravacao Local (Record)", Theme.ORANGE);
         JPanel b = body(card);
@@ -404,7 +444,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── Qualidade ─────────────────────────────────────────────────────────
     private JPanel buildQualidadeCard() {
         JPanel card = makeCard("Qualidade do Stream (referencia para paths)", Theme.TEAL);
         JPanel b = body(card);
@@ -433,7 +472,6 @@ public class ConfigWizardPanel extends JPanel {
         return card;
     }
 
-    // ── Path defaults ─────────────────────────────────────────────────────
     private JPanel buildPathDefaultsCard() {
         JPanel card = makeCard("Path Defaults (comportamento padrao de todos os paths)", Theme.PURPLE);
         JPanel b = body(card);
@@ -458,31 +496,29 @@ public class ConfigWizardPanel extends JPanel {
         sec.setBorder(new EmptyBorder(8, 0, 4, 0));
         b.add(sec, "span 4, wrap");
 
-        Object[][] hooks = {
-            {"runOnInit:",    null, null, null},
-            {"runOnDemand:",  null, null, null},
-            {"runOnReady:",   null, null, null},
-            {"runOnRead:",    null, null, null},
+        String[] hookNames = {
+            "runOnInit", "runOnDemand", "runOnReady", "runOnRead",
+            "runOnConnect", "runOnDisconnect"
         };
-        JTextField[] tfs = new JTextField[4];
-        JCheckBox[]  cks = new JCheckBox[4];
-        String[] hookNames = {"runOnInit","runOnDemand","runOnReady","runOnRead"};
-        for (int i = 0; i < 4; i++) {
+        JTextField[] tfs = new JTextField[hookNames.length];
+        JCheckBox[]  cks = new JCheckBox[hookNames.length];
+        for (int i = 0; i < hookNames.length; i++) {
             tfs[i] = tf("");
             cks[i] = chk("Restart");
             b.add(lbl(hookNames[i] + ":"));
             b.add(tfs[i], "growx");
             b.add(cks[i], "span 2, wrap");
         }
-        tfRunOnInit    = tfs[0]; chkRunOnInitRestart    = cks[0];
-        tfRunOnDemand  = tfs[1]; chkRunOnDemandRestart  = cks[1];
-        tfRunOnReady   = tfs[2]; chkRunOnReadyRestart   = cks[2];
-        tfRunOnRead    = tfs[3]; chkRunOnReadRestart    = cks[3];
+        tfRunOnInit               = tfs[0]; chkRunOnInitRestart         = cks[0];
+        tfRunOnDemand             = tfs[1]; chkRunOnDemandRestart        = cks[1];
+        tfRunOnReady              = tfs[2]; chkRunOnReadyRestart         = cks[2];
+        tfRunOnRead               = tfs[3]; chkRunOnReadRestart          = cks[3];
+        tfRunOnConnect            = tfs[4]; chkRunOnConnectRestart       = cks[4];
+        tfRunOnDisconnect         = tfs[5]; chkRunOnDisconnectRestart    = cks[5];
 
         return card;
     }
 
-    // ── Footer ────────────────────────────────────────────────────────────
     private JPanel buildFooter() {
         JPanel f = new JPanel(new MigLayout("insets 8 20 8 20, gap 10",
                                             "[]push[][]", "[]"));
@@ -506,7 +542,6 @@ public class ConfigWizardPanel extends JPanel {
         return f;
     }
 
-    // ── Coleta config ─────────────────────────────────────────────────────
     private Config buildConfig() {
         Config c = new Config();
         c.logLevel           = (LogLevel) cbLog.getSelectedItem();
@@ -559,7 +594,7 @@ public class ConfigWizardPanel extends JPanel {
 
         c.authMode        = (AuthMode) cbAuth.getSelectedItem();
         c.authUser        = tfUser.getText().trim();
-        c.authPass        = tfPass.getText().trim();
+        c.authPass        = new String(tfPass.getPassword()).trim();
         c.authHTTPAddress = tfAuthHTTP.getText().trim();
         c.authJWTJWKS     = tfJwtJWKS.getText().trim();
         c.authJWTClaimKey = tfJwtKey.getText().trim();
@@ -602,12 +637,12 @@ public class ConfigWizardPanel extends JPanel {
         String yaml = YamlPresetService.generate(buildConfig());
         service.saveConfigContent(yaml);
         configPanel.setYaml(yaml);
+        notifyApiPort();
         JOptionPane.showMessageDialog(this,
             "mediamtx.yml salvo com sucesso!\nVeja na aba Config YAML ou inicie o servidor.",
             "Aplicado com sucesso", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // ── Helpers UI ────────────────────────────────────────────────────────
     private JLabel lbl(String t) {
         JLabel l = new JLabel(t);
         l.setFont(Theme.FONT_MEDIUM);

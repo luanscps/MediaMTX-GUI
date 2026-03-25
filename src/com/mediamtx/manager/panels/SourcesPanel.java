@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
@@ -17,13 +18,14 @@ import java.util.List;
 
 public class SourcesPanel extends JPanel {
 
-    private static final String API_PATHS = "http://localhost:9997/v3/paths/list";
+    private static final int DEFAULT_API_PORT = 9997;
 
     private final MediaMTXService service;
     private final AppWindow appWindow;
     private DefaultTableModel tableModel;
     private JLabel statusLabel;
     private Timer autoRefreshTimer;
+    private int apiPort = DEFAULT_API_PORT;
 
     private static final String[] COLS = {
         "Path / Nome", "Tipo de Fonte", "URL / Source", "Estado", "Leitores"
@@ -41,6 +43,15 @@ public class SourcesPanel extends JPanel {
         autoRefreshTimer = new Timer(5000, e -> refreshPaths());
         autoRefreshTimer.start();
         refreshPaths();
+    }
+
+    /** Chamado pelo AppWindow/Wizard quando a porta da API muda */
+    public void setApiPort(int port) {
+        this.apiPort = port;
+    }
+
+    private String apiUrl(String path) {
+        return "http://localhost:" + apiPort + path;
     }
 
     // ── Header ───────────────────────────────────────────────────────────────
@@ -66,6 +77,14 @@ public class SourcesPanel extends JPanel {
         btnAdd.addActionListener(e -> openAddSourceDialog());
         btns.add(btnAdd);
 
+        JButton btnKick = makeButton("🗑 Remover Path", new Color(220, 38, 38));
+        btnKick.addActionListener(e -> kickSelectedPath());
+        btns.add(btnKick);
+
+        JButton btnCopyUrl = makeButton("📋 Copiar URL", new Color(124, 58, 237));
+        btnCopyUrl.addActionListener(e -> copyUrlDialog());
+        btns.add(btnCopyUrl);
+
         JButton btnRefresh = makeButton("↺ Atualizar", Theme.TEXT_MUTED);
         btnRefresh.addActionListener(e -> refreshPaths());
         btns.add(btnRefresh);
@@ -75,12 +94,14 @@ public class SourcesPanel extends JPanel {
     }
 
     // ── Tabela ───────────────────────────────────────────────────────────────
+    private JTable table;
+
     private JScrollPane buildTable() {
         tableModel = new DefaultTableModel(COLS, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setFont(Theme.FONT_MEDIUM);
         table.setForeground(Theme.TEXT);
         table.setBackground(Theme.BG_CARD);
@@ -150,13 +171,81 @@ public class SourcesPanel extends JPanel {
             "<span style='color:#bbbbbb'>Use </span>" +
             "<span style='color:#ffc644'><b>+ Adicionar Fonte</b></span>" +
             "<span style='color:#bbbbbb'> para inserir path no mediamtx.yml &nbsp;&middot;&nbsp; </span>" +
-            "<span style='color:#909090'>Suporta: RTMP &middot; RTSP &middot; SRT &middot; HLS &middot; WebRTC &middot; UDP/MPEG-TS &middot; NVR &middot; Camera Android</span>" +
+            "<span style='color:#90ee90'><b>Remover Path</b></span>" +
+            "<span style='color:#bbbbbb'> faz kick via API REST sem parar o servidor</span>" +
             "</html>");
         info.setFont(Theme.FONT_SMALL);
         footer.add(info, BorderLayout.CENTER);
         footer.setMinimumSize(new Dimension(0, 70));
         footer.setPreferredSize(new Dimension(0, 70));
         return footer;
+    }
+
+    // ── Kick / Remover path ──────────────────────────────────────────────────
+    private void kickSelectedPath() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                "Selecione um path na tabela antes de remover.",
+                "Nenhum path selecionado", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String pathName = (String) tableModel.getValueAt(row, 0);
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Remover (kick) o path \"" + pathName + "\" do servidor?\n" +
+            "Isso desconecta publishers e leitores ativos desse path.",
+            "Confirmar remoção", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        new Thread(() -> {
+            try {
+                String url = apiUrl("/v3/paths/kick/" + URLEncoder.encode(pathName, "UTF-8"));
+                httpDelete(url);
+                SwingUtilities.invokeLater(() -> {
+                    statusLabel.setText("● path removido: " + pathName);
+                    statusLabel.setForeground(new Color(34, 197, 94));
+                    refreshPaths();
+                });
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() ->
+                    JOptionPane.showMessageDialog(this,
+                        "Erro ao remover path via API:\n" + ex.getMessage(),
+                        "Erro", JOptionPane.ERROR_MESSAGE));
+            }
+        }, "sources-kick").start();
+    }
+
+    // ── Copiar URL ───────────────────────────────────────────────────────────
+    private void copyUrlDialog() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                "Selecione um path na tabela primeiro.",
+                "Nenhum path selecionado", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String pathName = (String) tableModel.getValueAt(row, 0);
+        String host = "localhost";
+
+        String[] options = {
+            "RTSP   → rtsp://" + host + ":8554/" + pathName,
+            "RTMP   → rtmp://" + host + ":1935/" + pathName,
+            "HLS    → http://" + host + ":8888/" + pathName,
+            "WebRTC → http://" + host + ":8889/" + pathName,
+            "SRT    → srt://"  + host + ":8890?streamid=request:" + pathName,
+        };
+
+        String choice = (String) JOptionPane.showInputDialog(this,
+            "Escolha o protocolo para copiar a URL do path \"" + pathName + "\":",
+            "Copiar URL de acesso", JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+
+        if (choice != null) {
+            String url = choice.substring(choice.indexOf("→ ") + 2).trim();
+            Toolkit.getDefaultToolkit().getSystemClipboard()
+                .setContents(new StringSelection(url), null);
+            statusLabel.setText("● URL copiada: " + url);
+            statusLabel.setForeground(new Color(34, 197, 94));
+        }
     }
 
     // ── Refresh via API REST ─────────────────────────────────────────────────
@@ -171,7 +260,7 @@ public class SourcesPanel extends JPanel {
         }
         new Thread(() -> {
             try {
-                String json = httpGet(API_PATHS);
+                String json = httpGet(apiUrl("/v3/paths/list"));
                 List<Object[]> rows = parsePaths(json);
                 SwingUtilities.invokeLater(() -> {
                     tableModel.setRowCount(0);
@@ -188,7 +277,7 @@ public class SourcesPanel extends JPanel {
         }, "sources-refresh").start();
     }
 
-    // ── HTTP GET — sem new URL(String) deprecated ────────────────────────────
+    // ── HTTP GET ─────────────────────────────────────────────────────────────
     private String httpGet(String urlStr) throws Exception {
         URI uri = URI.create(urlStr);
         HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
@@ -204,6 +293,17 @@ public class SourcesPanel extends JPanel {
             while ((line = br.readLine()) != null) sb.append(line);
             return sb.toString();
         }
+    }
+
+    // ── HTTP DELETE ──────────────────────────────────────────────────────────
+    private void httpDelete(String urlStr) throws Exception {
+        URI uri = URI.create(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+        conn.setRequestMethod("DELETE");
+        conn.setConnectTimeout(2000);
+        conn.setReadTimeout(3000);
+        int code = conn.getResponseCode();
+        if (code >= 400) throw new IOException("HTTP " + code);
     }
 
     // ── Parser JSON manual ───────────────────────────────────────────────────

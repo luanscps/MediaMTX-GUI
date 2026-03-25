@@ -49,7 +49,7 @@ public class MetricsPanel extends JPanel {
         bar.setBackground(Theme.BG);
         bar.setBorder(new EmptyBorder(0, 0, 12, 0));
 
-        JLabel title = new JLabel("📊  Metricas em Tempo Real");
+        JLabel title = new JLabel("\uD83D\uDCCA  Metricas em Tempo Real");
         title.setFont(Theme.FONT_TITLE);
         title.setForeground(Theme.ACCENT);
         bar.add(title, BorderLayout.WEST);
@@ -74,16 +74,18 @@ public class MetricsPanel extends JPanel {
         JPanel wrap = new JPanel(new BorderLayout(0, 16));
         wrap.setBackground(Theme.BG);
 
+        // Cards de resumo
         JPanel cards = new JPanel(new MigLayout("insets 0, gap 16 0", "[grow][grow][grow][grow]", "[100px!]"));
         cards.setBackground(Theme.BG);
 
-        lblApiStatus    = buildCard(cards, "API REST",     "verificando...", Theme.ACCENT);
-        lblTotalPaths   = buildCard(cards, "Paths Totais", "0",              Theme.PURPLE);
-        lblReadyPaths   = buildCard(cards, "Paths Ativos", "0",              Theme.SUCCESS);
-        lblTotalReaders = buildCard(cards, "Leitores",     "0",              new Color(245, 158, 11));
+        lblApiStatus    = buildCard(cards, "API REST",      "verificando...", Theme.ACCENT);
+        lblTotalPaths   = buildCard(cards, "Paths Totais",  "0",              Theme.PURPLE);
+        lblReadyPaths   = buildCard(cards, "Paths Ativos",  "0",              Theme.SUCCESS);
+        lblTotalReaders = buildCard(cards, "Leitores",      "0",              new Color(245, 158, 11));
 
         wrap.add(cards, BorderLayout.NORTH);
 
+        // Tabela
         tableModel = new DefaultTableModel(COLS, 0) {
             @Override
             public boolean isCellEditable(int row, int col) { return false; }
@@ -255,7 +257,7 @@ public class MetricsPanel extends JPanel {
             int    rCount   = countReaders(obj);
             String srcUrl   = extractSourceUrl(obj);
             String srcType  = detectType(obj, srcUrl);
-            boolean hasPub  = obj.contains("\"publisher\":{\"type\"");
+            boolean hasPub  = obj.contains("\"publisher\":{") && !obj.contains("\"publisher\":null");
             rows.add(new Object[]{ pathName, state, rCount, srcType, hasPub ? "sim" : "nao" });
         }
         return rows;
@@ -315,9 +317,8 @@ public class MetricsPanel extends JPanel {
     private int countReaders(String obj) {
         int idx = obj.indexOf("\"readers\"");
         if (idx < 0) return 0;
-        int count = 0;
-        int pos   = idx;
-        int end   = obj.indexOf(']', idx);
+        int count = 0, pos = idx;
+        int end = obj.indexOf(']', idx);
         while ((pos = obj.indexOf("\"type\"", pos + 1)) >= 0) {
             if (end > 0 && pos > end) break;
             count++;
@@ -325,7 +326,9 @@ public class MetricsPanel extends JPanel {
         return count;
     }
 
-    public void setApiPort(int port) { this.apiPort = port; }
+    public void setApiPort(int port) {
+        this.apiPort = port;
+    }
 
     public void stopRefresh() {
         if (refreshTimer != null) refreshTimer.stop();
